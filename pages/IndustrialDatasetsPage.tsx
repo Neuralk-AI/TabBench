@@ -61,13 +61,10 @@ const IndustrialDatasetsPage: React.FC = () => {
     if (productCategorizationDatasets.length === 0) return null;
     const N = productCategorizationDatasets.length;
     const rows = productCategorizationDatasets.map(ds => ds.rows);
-    // All product categorization datasets span levels 1-4
-    const levelComplexityDisplay = "1-4";
-
+    
     return {
       count: N,
       avgRows: (rows.reduce((sum, r) => sum + r, 0) / N).toFixed(0),
-      levelComplexity: levelComplexityDisplay,
     };
   }, [productCategorizationDatasets]);
 
@@ -369,6 +366,10 @@ const IndustrialDatasetsPage: React.FC = () => {
                         <p className="text-xs text-gray-500">Avg. Rows</p>
                         <p className="text-lg font-semibold text-gray-700">{Number(productCatSummaryStats.avgRows).toLocaleString()}</p>
                       </div>
+                       <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
+                        <p className="text-xs text-gray-500">Features</p>
+                        <p className="text-base sm:text-lg font-semibold text-gray-800">Title, Description</p>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -460,7 +461,7 @@ const IndustrialDatasetsPage: React.FC = () => {
                                   <PerformanceChart
                                     data={chartData}
                                     metricName={selectedProductCatMetric}
-                                    title={`Performance on ${currentProductCatDataset.name} (${selectedProductCatMetric})`}
+                                    title={`Performance on ${currentProductCatDataset.name}`}
                                     headerControls={individualDatasetMetricSelectorControls(currentProductCatDataset.id)}
                                   />
                               );
@@ -552,7 +553,7 @@ const IndustrialDatasetsPage: React.FC = () => {
                 <PerformanceChart
                   data={primaryChartData}
                   metricName={primaryMetric}
-                  title={`Performance on ${dataset.name} (${primaryMetric})`}
+                  title={`Performance on ${dataset.name}`}
                 />
               );
             }

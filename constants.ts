@@ -310,16 +310,14 @@ const industrialUseCasesData: { [key: string]: { datasets: Dataset[], descriptio
       const datasetNumber = i + 1;
       return {
         id: `industrial-pc-new-${datasetNumber}`,
-        name: `Product Catalog Dataset ${datasetNumber}`,
+        name: `Dataset ${datasetNumber}`, // UPDATED NAME
         type: DatasetType.INDUSTRIAL,
-        description: `An industrial dataset (No. ${datasetNumber}) for product categorization with 3000 rows. Features include product title and description.`, // Updated description
+        description: `An industrial dataset (No. ${datasetNumber}) for product categorization with 3000 rows. Features include product title and description.`,
         source: `Major retail player`,
         rows: 3000,
-        features: "Title, Description", // Changed as per request
-        // task: 'Multi-class Classification', // Removed as per request
+        features: "Title, Description",
         targetVariable: 'Category_ID',
         useCaseSlug: 'product-categorization',
-        // numClasses: (i % 10) + 1, // Removed as per request
         level: getProductCategorizationLevel(i),
         batchFile: productCategorizationBatchFiles[i] || 'N/A',
       };
@@ -430,7 +428,7 @@ const parseTsvData = (tsvData: string, modelId: string, metricMapping: { accurac
                 d.id.endsWith(rawDatasetName.toLowerCase().replace(/[^a-z0-9]+/g, '-'))) {
                 return true;
             }
-            if (d.batchFile && rawDatasetName.endsWith(d.batchFile)) {
+            if (d.batchFile && rawDatasetName.endsWith(d.batchFile)) { // Primary match for product categ.
                  return true;
             }
             return false;

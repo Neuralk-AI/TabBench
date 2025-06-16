@@ -360,7 +360,7 @@ const AcademicDatasetsPage: React.FC = () => {
                               <PerformanceChart
                                 data={chartData} 
                                 metricName={selectedIndividualAcademicMetric}
-                                title={`Performance on ${currentAcademicDataset.name} (${selectedIndividualAcademicMetric})`}
+                                title={`Performance on ${currentAcademicDataset.name}`}
                                 headerControls={individualAcademicDatasetMetricSelectorControls(currentAcademicDataset.id)}
                                 yAxisTickInterval={0.1} 
                               />
