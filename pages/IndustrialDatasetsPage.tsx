@@ -35,17 +35,41 @@ const IndustrialDatasetsPage: React.FC = () => {
 
   const productCatDatasetsForDisplay = useMemo(() => {
     if (useCaseSlug !== 'product-categorization') return [];
-    return [...productCategorizationDatasets].sort((a, b) => a.name.localeCompare(b.name));
+
+    const extractNum = (name: string): number => {
+      const match = name.match(/^Dataset (\d+)$/); // Regex for "Dataset X"
+      return match ? parseInt(match[1], 10) : Infinity;
+    };
+
+    return [...productCategorizationDatasets].sort((a, b) => {
+      const numA = extractNum(a.name);
+      const numB = extractNum(b.name);
+
+      if (numA !== Infinity && numB !== Infinity) {
+        return numA - numB; // Sort numerically if both are numbers
+      }
+      // Fallback for non-standard names or if one is not a number
+      if (numA !== Infinity) return -1; // numA (number) comes before numB (Infinity/non-match)
+      if (numB !== Infinity) return 1;  // numB (number) comes before numA (Infinity/non-match)
+      return a.name.localeCompare(b.name); // Fallback to alphabetical if neither matches "Dataset X"
+    });
   }, [productCategorizationDatasets, useCaseSlug]);
 
   useEffect(() => {
     if (useCaseSlug === 'product-categorization') {
-        const currentIsValid = currentProductCatDataset && productCatDatasetsForDisplay.some(d => d.id === currentProductCatDataset.id);
-        if (productCatDatasetsForDisplay.length > 0 && !currentIsValid) {
-            setCurrentProductCatDataset(productCatDatasetsForDisplay[0]);
-        } else if (productCatDatasetsForDisplay.length === 0) {
-            setCurrentProductCatDataset(null);
+      const currentIsValid = currentProductCatDataset && productCatDatasetsForDisplay.some(d => d.id === currentProductCatDataset.id);
+      if (productCatDatasetsForDisplay.length > 0 && !currentIsValid) {
+        const defaultDataset = productCatDatasetsForDisplay.find(ds => ds.name === 'Dataset 25');
+        if (defaultDataset) {
+          setCurrentProductCatDataset(defaultDataset);
+        } else if (productCatDatasetsForDisplay.length > 0) {
+          setCurrentProductCatDataset(productCatDatasetsForDisplay[0]);
+        } else {
+           setCurrentProductCatDataset(null);
         }
+      } else if (productCatDatasetsForDisplay.length === 0) {
+        setCurrentProductCatDataset(null);
+      }
     }
   }, [productCatDatasetsForDisplay, useCaseSlug, currentProductCatDataset]);
 

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ErrorBar } from 'recharts';
 import { ChartDataItem } from '../types';
 import { MODEL_COLORS } from '../constants';
@@ -10,7 +10,7 @@ interface PerformanceChartProps {
   title?: string;
   headerControls?: React.ReactNode;
   yAxisTickInterval?: number;
-  tightenYAxis?: boolean; // New prop for zooming effect
+  tightenYAxis?: boolean; // Used for average performance charts
 }
 
 const neuralkLogoUrl = "https://cdn-images.welcometothejungle.com/v82GguLLmnQoPY4v0Gu9ZTGrzAwtFaKjAd0pF-mNsFw/resize:auto:400::/czM6Ly93dHRqLXByb2R1Y3Rpb24vYWNjb3VudHMvdXBsb2Fkcy9vcmdhbml6YXRpb25zL2xvZ29zL2E5MWQ5M2U5MWMyNDYyZjA0MzNjMTc0Zjc0YjNjMjMwLzU2NmZkOTBjLTY2M2ItNDJlZC04N2I4LTVmMGIwYTg1NGU0NS5wbmc";
@@ -54,7 +54,7 @@ const generateNiceTicks = (
   metricName: string,
   targetTickCount: number = 5,
   fixedInterval?: number, // Optional fixed interval
-  tightenYAxis?: boolean // New prop
+  tightenYAxisParam?: boolean // Renamed to avoid conflict
 ): number[] => {
     const common01Metrics = ['Accuracy', 'AUC', 'F1 Score', 'Precision', 'Recall'];
 
@@ -64,10 +64,11 @@ const generateNiceTicks = (
 
         // Generate ticks based on fixedInterval around the provided domainMin and domainMax
         let startTick = Math.floor(domainMin / fixedInterval) * fixedInterval;
-        if (startTick > domainMin - fixedInterval * 0.1) startTick -= fixedInterval; // ensure domainMin is covered or below
+        if (startTick > domainMin - fixedInterval * 0.1 && Math.abs(startTick - domainMin) > 1e-9) startTick -= fixedInterval; 
+
 
         let endTick = Math.ceil(domainMax / fixedInterval) * fixedInterval;
-        if (endTick < domainMax + fixedInterval * 0.1) endTick += fixedInterval; // ensure domainMax is covered or above
+        if (endTick < domainMax + fixedInterval * 0.1 && Math.abs(endTick - domainMax) > 1e-9) endTick += fixedInterval; 
         
         for (let val = startTick; val <= endTick + fixedInterval / 2; val += fixedInterval) {
              generatedTicksBase.push(parseFloat(val.toFixed(tickPrecision)));
@@ -77,7 +78,7 @@ const generateNiceTicks = (
             tick => tick >= domainMin - fixedInterval * 0.01 && tick <= domainMax + fixedInterval * 0.01 // Filter generously
         );
 
-        if (tightenYAxis) {
+        if (tightenYAxisParam) {
             // For tightened axis, ensure the domain boundaries are considered if not captured
             if (!displayTicks.some(t => Math.abs(t - domainMin) < 1e-9)) displayTicks.push(parseFloat(domainMin.toFixed(tickPrecision)));
             if (!displayTicks.some(t => Math.abs(t - domainMax) < 1e-9)) displayTicks.push(parseFloat(domainMax.toFixed(tickPrecision)));
@@ -90,6 +91,9 @@ const generateNiceTicks = (
         }
         
         displayTicks = [...new Set(displayTicks)].sort((a,b)=>a-b);
+        // Ensure ticks are within the domain for fixed interval cases, especially when domain itself is fixed like [0.6, 1.0]
+        displayTicks = displayTicks.filter(t => t >= domainMin - 1e-9 && t <= domainMax + 1e-9);
+
 
         if (displayTicks.length < 2 && (domainMax - domainMin > 1e-9)) {
             const tempTicks = new Set(displayTicks);
@@ -130,7 +134,7 @@ const generateNiceTicks = (
     let base = domainMin;
     let step = 0.1; 
 
-    if (common01Metrics.includes(metricName) && !tightenYAxis) {
+    if (common01Metrics.includes(metricName) && !tightenYAxisParam) {
       step = 0.1;
       if (base === 1.0) return [0.8, 0.9, 1.0].filter(t => t>= domainMin - step && t <= domainMax + step);
       if (base === 0.0) return [0.0, 0.1, 0.2].filter(t => t>= domainMin - step && t <= domainMax + step);
@@ -144,8 +148,8 @@ const generateNiceTicks = (
       return ticks.filter(t => t >= domainMin && t <= domainMax);
 
     }
-     // For tightenYAxis or non-01 metrics with single point
-     const typicalRangeFraction = tightenYAxis ? 0.02 : 0.1; // smaller step for tightenYAxis with 01 metrics. 0.2 for others.
+     // For tightenYAxisParam or non-01 metrics with single point
+     const typicalRangeFraction = tightenYAxisParam ? 0.02 : 0.1; // smaller step for tightenYAxisParam with 01 metrics. 0.2 for others.
      step = Math.max(Math.abs(base * typicalRangeFraction), 0.005 * targetTickCount /2 , 0.005); 
 
 
@@ -225,8 +229,8 @@ const generateNiceTicks = (
     if (ticks.length > 15) break; 
   }
   
-  // Ensure domain boundaries are considered, especially for tightenYAxis
-  if (tightenYAxis || (ticks.length > 0 && (ticks[0] > domainMin || ticks[ticks.length-1] < domainMax))) {
+  // Ensure domain boundaries are considered, especially for tightenYAxisParam
+  if (tightenYAxisParam || (ticks.length > 0 && (ticks[0] > domainMin || ticks[ticks.length-1] < domainMax))) {
       if (!ticks.some(t => Math.abs(t - domainMin) < 1e-9)) ticks.push(parseFloat(domainMin.toFixed(tickPrecision)));
       if (!ticks.some(t => Math.abs(t - domainMax) < 1e-9)) ticks.push(parseFloat(domainMax.toFixed(tickPrecision)));
   }
@@ -235,7 +239,7 @@ const generateNiceTicks = (
   if (common01Metrics.includes(metricName)) {
     let finalTicks = [...new Set(ticks.map(t => parseFloat(t.toFixed(tickPrecision))))].sort((a, b) => a - b);
     
-    if (tightenYAxis) {
+    if (tightenYAxisParam) {
         // Filter to be within the provided (already tightened) domain and ensure bounds are included.
         finalTicks = finalTicks.filter(t => t >= domainMin - 1e-9 && t <= domainMax + 1e-9);
         if (!finalTicks.some(t => Math.abs(t - domainMin) < 1e-9)) finalTicks.push(parseFloat(domainMin.toFixed(tickPrecision)));
@@ -260,228 +264,221 @@ const generateNiceTicks = (
 
 
 const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, metricName, title, headerControls, yAxisTickInterval, tightenYAxis = false }) => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768); // Tailwind 'md' breakpoint
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   if (!data || data.length === 0) {
     return <p className="text-gray-500 text-sm p-4 text-center">No chart data available for {metricName}.</p>;
   }
 
   let yAxisDomainCalculated: [number, number] = [0,1]; 
   let niceTicks: number[] = [0, 0.5, 1];
-  const common01Metrics = ['Accuracy', 'AUC', 'F1 Score', 'Precision', 'Recall'];
+  const common01MetricsForFixedScale = ['Accuracy', 'AUC', 'F1 Score'];
+
 
   const values = data.map(item => item[metricName] as number).filter(v => typeof v === 'number' && !isNaN(v));
   
   if (values.length > 0) {
-    let minActualValue = Infinity;
-    let maxActualValue = -Infinity;
+    if (tightenYAxis && common01MetricsForFixedScale.includes(metricName)) {
+      yAxisDomainCalculated = [0.6, 1.0];
+      // For a domain of [0.6, 1.0] and interval 0.1, targetTickCount should lead to 5 ticks.
+      // (1.0 - 0.6) / 0.1 = 4 intervals => 5 ticks.
+      niceTicks = generateNiceTicks(0.6, 1.0, metricName, 5, 0.1, true); 
+    } else {
+        let minActualValue = Infinity;
+        let maxActualValue = -Infinity;
 
-    data.forEach(item => {
-        const value = item[metricName] as number;
-        if (typeof value === 'number' && !isNaN(value)) {
-            minActualValue = Math.min(minActualValue, value);
-            maxActualValue = Math.max(maxActualValue, value);
+        data.forEach(item => {
+            const value = item[metricName] as number;
+            if (typeof value === 'number' && !isNaN(value)) {
+                minActualValue = Math.min(minActualValue, value);
+                maxActualValue = Math.max(maxActualValue, value);
+            }
+        });
+        
+        let minBoundWithStdDev = minActualValue; 
+        let maxBoundWithStdDev = maxActualValue; 
+        let hasStdDev = false;
+
+        data.forEach(item => {
+          const value = item[metricName] as number;
+          if (typeof value !== 'number' || isNaN(value)) return;
+
+          const stdDevKey = `${metricName}_stdDev`;
+          const stdDev = item[stdDevKey] as number | undefined;
+
+          if (typeof stdDev === 'number' && stdDev > 0) {
+            hasStdDev = true;
+            minBoundWithStdDev = Math.min(minBoundWithStdDev, value - stdDev);
+            maxBoundWithStdDev = Math.max(maxBoundWithStdDev, value + stdDev);
+          }
+        });
+        if (!hasStdDev) { 
+            minBoundWithStdDev = minActualValue;
+            maxBoundWithStdDev = maxActualValue;
         }
-    });
-    
-    let minBoundWithStdDev = minActualValue; 
-    let maxBoundWithStdDev = maxActualValue; 
-    let hasStdDev = false;
 
-    data.forEach(item => {
-      const value = item[metricName] as number;
-      if (typeof value !== 'number' || isNaN(value)) return;
+        if (minBoundWithStdDev !== Infinity && maxBoundWithStdDev !== -Infinity) {
+          const dataRange = maxBoundWithStdDev - minBoundWithStdDev; 
+          let padding;
 
-      const stdDevKey = `${metricName}_stdDev`;
-      const stdDev = item[stdDevKey] as number | undefined;
-
-      if (typeof stdDev === 'number' && stdDev > 0) {
-        hasStdDev = true;
-        minBoundWithStdDev = Math.min(minBoundWithStdDev, value - stdDev);
-        maxBoundWithStdDev = Math.max(maxBoundWithStdDev, value + stdDev);
-      }
-    });
-    if (!hasStdDev) { 
-        minBoundWithStdDev = minActualValue;
-        maxBoundWithStdDev = maxActualValue;
-    }
-
-    if (minBoundWithStdDev !== Infinity && maxBoundWithStdDev !== -Infinity) {
-      const dataRange = maxBoundWithStdDev - minBoundWithStdDev; // Use this for padding calculation basis
-      let padding;
-
-      if (tightenYAxis) {
-        if (dataRange < 0.02) { 
-            padding = 0.002; 
-        } else if (dataRange < 0.05) { 
-            padding = 0.005; 
-        } else { 
-            padding = dataRange * 0.02; 
-        }
-        padding = Math.max(padding, 0.001); 
-      } else {
-        if (dataRange < 0.001 && dataRange >=0) {
-            padding = 0.02;
-        } else if (dataRange < 0.1) {
-            padding = Math.max(dataRange * 0.2, 0.01);
-        } else {
-            padding = dataRange * 0.1;
-        }
-        padding = Math.min(padding, dataRange > 0 ? 0.2 * dataRange : 0.2);
-        padding = Math.max(padding, 0.005);
-      }
-
-
-      let domainMinInputForTicks = minBoundWithStdDev - padding;
-      let domainMaxInputForTicks = maxBoundWithStdDev + padding;
-
-
-      if (Math.abs(maxActualValue - minActualValue) < 1e-9) { // Single data point case
-          const base = maxActualValue;
-          let expansion = tightenYAxis ? 0.025 : 0.05; 
-          if (common01Metrics.includes(metricName) && tightenYAxis && base >=0 && base <=1) {
-             expansion = 0.01; // even smaller for tight 0-1 single point
+          if (tightenYAxis) {
+            if (dataRange < 0.02) { padding = 0.002; } 
+            else if (dataRange < 0.05) { padding = 0.005; } 
+            else { padding = dataRange * 0.02; }
+            padding = Math.max(padding, 0.001); 
+          } else {
+            if (dataRange < 0.001 && dataRange >=0) { padding = 0.02;} 
+            else if (dataRange < 0.1) { padding = Math.max(dataRange * 0.2, 0.01); } 
+            else { padding = dataRange * 0.1; }
+            padding = Math.min(padding, dataRange > 0 ? 0.2 * dataRange : 0.2);
+            padding = Math.max(padding, 0.005);
           }
 
+          let domainMinInputForTicks = minBoundWithStdDev - padding;
+          let domainMaxInputForTicks = maxBoundWithStdDev + padding;
+          
+          const common01Metrics = ['Accuracy', 'AUC', 'F1 Score', 'Precision', 'Recall'];
 
-          if (common01Metrics.includes(metricName) && base >= 0 && base <= 1) {
-              if (base === 1.0) { domainMinInputForTicks = Math.max(0, 1.0 - (expansion*2)); domainMaxInputForTicks = 1.0; }
-              else if (base === 0.0) { domainMinInputForTicks = 0.0; domainMaxInputForTicks = Math.min(1, 0.0 + (expansion*2)); }
-              else { 
-                  domainMinInputForTicks = Math.max(0, base - expansion);
-                  domainMaxInputForTicks = Math.min(1, base + expansion);
+
+          if (Math.abs(maxActualValue - minActualValue) < 1e-9) { 
+              const base = maxActualValue;
+              let expansion = tightenYAxis ? 0.025 : 0.05; 
+              if (common01Metrics.includes(metricName) && tightenYAxis && base >=0 && base <=1) {
+                 expansion = 0.01; 
               }
-          } else { 
-              domainMinInputForTicks = base - expansion;
-              domainMaxInputForTicks = base + expansion;
-              if (!isHigherBetter(metricName) && domainMinInputForTicks < 0 && base >= 0) {
-                  domainMinInputForTicks = 0;
-              }
-          }
-      } else { // Range of data exists
-          if (common01Metrics.includes(metricName)) {
-              if (!tightenYAxis) { // Only apply broad 0-1 clamping if not tightening
-                  domainMinInputForTicks = Math.max(0, domainMinInputForTicks); 
-                  domainMaxInputForTicks = Math.min(1, domainMaxInputForTicks);
-              } else { // For tightenYAxis, still ensure bounds are within 0-1 if data itself is within 0-1
-                  if(minActualValue >= 0 && maxActualValue <=1) {
-                     domainMinInputForTicks = Math.max(0, domainMinInputForTicks);
-                     domainMaxInputForTicks = Math.min(1, domainMaxInputForTicks);
+              if (common01Metrics.includes(metricName) && base >= 0 && base <= 1) {
+                  if (base === 1.0) { domainMinInputForTicks = Math.max(0, 1.0 - (expansion*2)); domainMaxInputForTicks = 1.0; }
+                  else if (base === 0.0) { domainMinInputForTicks = 0.0; domainMaxInputForTicks = Math.min(1, 0.0 + (expansion*2)); }
+                  else { 
+                      domainMinInputForTicks = Math.max(0, base - expansion);
+                      domainMaxInputForTicks = Math.min(1, base + expansion);
+                  }
+              } else { 
+                  domainMinInputForTicks = base - expansion;
+                  domainMaxInputForTicks = base + expansion;
+                  if (!isHigherBetter(metricName) && domainMinInputForTicks < 0 && base >= 0) {
+                      domainMinInputForTicks = 0;
                   }
               }
-          } else if (metricName === 'R2 Score') {
-              if (maxActualValue <= 1 || tightenYAxis) domainMaxInputForTicks = Math.min(domainMaxInputForTicks, 1 + padding);
-          } else if (!isHigherBetter(metricName)) { 
-              if (minActualValue >= 0) domainMinInputForTicks = Math.max(0, domainMinInputForTicks);
           } else { 
-             if (minActualValue >= 0) domainMinInputForTicks = Math.max(0, domainMinInputForTicks);
+              if (common01Metrics.includes(metricName)) {
+                  if (!tightenYAxis) { 
+                      domainMinInputForTicks = Math.max(0, domainMinInputForTicks); 
+                      domainMaxInputForTicks = Math.min(1, domainMaxInputForTicks);
+                  } else { 
+                     // This case is for tightenYAxis=true charts but metrics OTHER than Acc,F1,AUC
+                     // or if Acc,F1,AUC were on non-tightenYAxis charts (covered by !tightenYAxis above)
+                     if(minActualValue >= 0 && maxActualValue <=1) {
+                        domainMinInputForTicks = Math.max(0, domainMinInputForTicks);
+                        domainMaxInputForTicks = Math.min(1, domainMaxInputForTicks);
+                     }
+                  }
+              } else if (metricName === 'R2 Score') {
+                  if (maxActualValue <= 1 || tightenYAxis) domainMaxInputForTicks = Math.min(domainMaxInputForTicks, 1 + padding);
+              } else if (!isHigherBetter(metricName)) { 
+                  if (minActualValue >= 0) domainMinInputForTicks = Math.max(0, domainMinInputForTicks);
+              } else { 
+                 if (minActualValue >= 0) domainMinInputForTicks = Math.max(0, domainMinInputForTicks);
+              }
           }
-      }
-      
-      // Specific cap for Accuracy/AUC on Academic Average chart (identified by tightenYAxis=true)
-      if ((metricName === 'Accuracy' || metricName === 'AUC') && tightenYAxis) {
-        const valueCap = 0.9;
-        // If the axis would naturally extend beyond the cap, limit it.
-        // Otherwise, let it use its calculated (potentially lower) max.
-        if (domainMaxInputForTicks > valueCap) {
-            domainMaxInputForTicks = valueCap;
-        }
-        // If after capping, or if original domainMin was already high,
-        // ensure min is less than max and provide a small viewing window.
-        if (domainMinInputForTicks >= domainMaxInputForTicks) {
-            let delta = 0.01; // Default small gap
-            const originalDataRangeForDelta = maxBoundWithStdDev - minBoundWithStdDev; // Use original data spread
-            if (originalDataRangeForDelta < 0.02) delta = 0.002;
-            else if (originalDataRangeForDelta < 0.05) delta = 0.005;
-            
-            domainMinInputForTicks = domainMaxInputForTicks - delta;
-        }
-        domainMinInputForTicks = Math.max(0, domainMinInputForTicks); // Ensure not negative
-        // Final check to ensure max is not below min due to adjustments
-        if (domainMaxInputForTicks < domainMinInputForTicks) {
-            domainMaxInputForTicks = domainMinInputForTicks + 0.001; // Minimal gap
-            if (domainMaxInputForTicks > valueCap) domainMaxInputForTicks = valueCap; // Re-apply cap if needed
-        }
-         // Ensure max did not accidentally go above cap due to min adjustment forcing it up
-        if (domainMaxInputForTicks > valueCap && minActualValue < valueCap) { // Only if some data is below cap
-            domainMaxInputForTicks = valueCap;
-        }
-      }
+          
+          // Logic to push to 1.0 for other 0-1 metrics on tightenYAxis charts if data is high.
+          // This won't apply to Acc, F1, AUC on tightenYAxis charts due to the new [0.6, 1.0] rule above.
+          if (tightenYAxis && common01Metrics.includes(metricName) && !common01MetricsForFixedScale.includes(metricName) ) {
+              if (domainMaxInputForTicks >= 0.99 && domainMaxInputForTicks < 1.0 && maxActualValue > 0.90) {
+                  domainMaxInputForTicks = 1.0;
+              }
+          }
 
+          if (domainMinInputForTicks >= domainMaxInputForTicks) { 
+            const baseVal = (domainMaxInputForTicks + domainMinInputForTicks) / 2; 
+            const defaultStep = (tightenYAxis && common01Metrics.includes(metricName)) ? 0.005 : 0.01;
 
-      if (domainMinInputForTicks >= domainMaxInputForTicks) { 
-        const baseVal = (domainMaxInputForTicks + domainMinInputForTicks) / 2; // Or just one of them if they were equal
-        const defaultStep = (tightenYAxis && common01Metrics.includes(metricName)) ? 0.005 : 0.01;
-
-        if (domainMaxInputForTicks <= (tightenYAxis && common01Metrics.includes(metricName) ? 0.995 : 0.95) || !common01Metrics.includes(metricName) ) { 
-            domainMaxInputForTicks = baseVal + defaultStep;
-            domainMinInputForTicks = baseVal - defaultStep;
-        } else { 
-            domainMinInputForTicks = baseVal - defaultStep;
-            domainMaxInputForTicks = baseVal + defaultStep; // Will be clamped by [0,1] later if 01Metric
-        }
-        if (common01Metrics.includes(metricName)) { 
-             domainMinInputForTicks = Math.max(0, domainMinInputForTicks);
-             domainMaxInputForTicks = Math.min(1, domainMaxInputForTicks);
-             if ((metricName === 'Accuracy' || metricName === 'AUC') && tightenYAxis) { // Re-apply cap if necessary
-                domainMaxInputForTicks = Math.min(domainMaxInputForTicks, 0.9);
-             }
-        }
-         if (domainMinInputForTicks >= domainMaxInputForTicks) { // Final safety for a tiny range
-             domainMaxInputForTicks = domainMinInputForTicks + 0.001;
-              if (common01Metrics.includes(metricName)) domainMaxInputForTicks = Math.min(1, domainMaxInputForTicks);
-              if ((metricName === 'Accuracy' || metricName === 'AUC') && tightenYAxis) domainMaxInputForTicks = Math.min(domainMaxInputForTicks, 0.9);
-         }
-      }
-      
-      niceTicks = generateNiceTicks(domainMinInputForTicks, domainMaxInputForTicks, metricName, 5, yAxisTickInterval, tightenYAxis);
-
-      if (niceTicks.length > 0) {
-        let finalDomainMin = niceTicks[0];
-        let finalDomainMax = niceTicks[niceTicks.length - 1];
-        if (finalDomainMin >= finalDomainMax && niceTicks.length === 1) {
-            const tickValue = niceTicks[0];
-            const defaultStep = typeof yAxisTickInterval === 'number' && yAxisTickInterval > 0 ? yAxisTickInterval : (tightenYAxis ? 0.01 : 0.1);
-             if (common01Metrics.includes(metricName)) {
-                finalDomainMin = Math.max(0, tickValue - defaultStep);
-                finalDomainMax = Math.min(1, tickValue + defaultStep);
-                if ((metricName === 'Accuracy' || metricName === 'AUC') && tightenYAxis) { // Apply cap for Accuracy/AUC with tightenYAxis
-                    finalDomainMax = Math.min(finalDomainMax, 0.9);
-                }
-                if (finalDomainMin >= finalDomainMax) {
-                     finalDomainMin = Math.max(0, tickValue - defaultStep/2);
-                     finalDomainMax = Math.min(common01Metrics.includes(metricName) ? ((metricName === 'Accuracy' || metricName === 'AUC') && tightenYAxis ? 0.9 : 1) : Infinity, tickValue + defaultStep/2);
-                     if (finalDomainMin >= finalDomainMax) {finalDomainMax = Math.min(common01Metrics.includes(metricName) ? ((metricName === 'Accuracy' || metricName === 'AUC') && tightenYAxis ? 0.9 : 1) : Infinity, finalDomainMin + defaultStep/10);}
-                }
-            } else {
-                finalDomainMin = tickValue - defaultStep;
-                finalDomainMax = tickValue + defaultStep;
+            if (domainMaxInputForTicks <= ((tightenYAxis && common01Metrics.includes(metricName)) ? 0.995 : 0.95) || !common01Metrics.includes(metricName) ) { 
+                domainMaxInputForTicks = baseVal + defaultStep;
+                domainMinInputForTicks = baseVal - defaultStep;
+            } else { 
+                domainMinInputForTicks = baseVal - defaultStep;
+                domainMaxInputForTicks = baseVal + defaultStep; 
             }
-        } else if (finalDomainMin >= finalDomainMax) { 
-             finalDomainMax = finalDomainMin + (tightenYAxis ? 0.005 : 0.01); 
-             if (common01Metrics.includes(metricName)) {
-                finalDomainMax = Math.min(1, finalDomainMax);
-                if ((metricName === 'Accuracy' || metricName === 'AUC') && tightenYAxis) {
-                     finalDomainMax = Math.min(finalDomainMax, 0.9);
-                }
+            if (common01Metrics.includes(metricName)) { 
+                 domainMinInputForTicks = Math.max(0, domainMinInputForTicks);
+                 domainMaxInputForTicks = Math.min(1, domainMaxInputForTicks);
+            }
+             if (domainMinInputForTicks >= domainMaxInputForTicks) { 
+                 domainMaxInputForTicks = domainMinInputForTicks + 0.001;
+                  if (common01Metrics.includes(metricName)) domainMaxInputForTicks = Math.min(1, domainMaxInputForTicks);
              }
-        }
-        yAxisDomainCalculated = [finalDomainMin, finalDomainMax];
-      } else { 
-        let finalDomainMinCalc = parseFloat(domainMinInputForTicks.toFixed(3));
-        let finalDomainMaxCalc = parseFloat(domainMaxInputForTicks.toFixed(3));
-         if (finalDomainMinCalc >= finalDomainMaxCalc) {
-            finalDomainMaxCalc = finalDomainMinCalc + (tightenYAxis ? 0.005 : 0.01);
-             if (common01Metrics.includes(metricName)) {
-                finalDomainMaxCalc = Math.min(1, finalDomainMaxCalc);
-                 if ((metricName === 'Accuracy' || metricName === 'AUC') && tightenYAxis) {
-                    finalDomainMaxCalc = Math.min(finalDomainMaxCalc, 0.9);
+          }
+          
+          niceTicks = generateNiceTicks(domainMinInputForTicks, domainMaxInputForTicks, metricName, 5, yAxisTickInterval, tightenYAxis);
+
+          if (niceTicks.length > 0) {
+            let finalDomainMin = niceTicks[0];
+            let finalDomainMax = niceTicks[niceTicks.length - 1];
+            if (finalDomainMin >= finalDomainMax && niceTicks.length === 1) {
+                const tickValue = niceTicks[0];
+                const defaultStep = typeof yAxisTickInterval === 'number' && yAxisTickInterval > 0 ? yAxisTickInterval : (tightenYAxis ? 0.01 : 0.1);
+                 if (common01Metrics.includes(metricName)) {
+                    finalDomainMin = Math.max(0, tickValue - defaultStep);
+                    finalDomainMax = Math.min(1, tickValue + defaultStep);
+                    if (finalDomainMin >= finalDomainMax) {
+                         finalDomainMin = Math.max(0, tickValue - defaultStep/2);
+                         finalDomainMax = Math.min(common01Metrics.includes(metricName) ? 1 : Infinity, tickValue + defaultStep/2);
+                         if (finalDomainMin >= finalDomainMax) {finalDomainMax = Math.min(common01Metrics.includes(metricName) ? 1 : Infinity, finalDomainMin + defaultStep/10);}
+                    }
+                } else {
+                    finalDomainMin = tickValue - defaultStep;
+                    finalDomainMax = tickValue + defaultStep;
                 }
-             }
+            } else if (finalDomainMin >= finalDomainMax) { 
+                 finalDomainMax = finalDomainMin + (tightenYAxis ? 0.005 : 0.01); 
+                 if (common01Metrics.includes(metricName)) {
+                    finalDomainMax = Math.min(1, finalDomainMax);
+                 }
+            }
+            yAxisDomainCalculated = [finalDomainMin, finalDomainMax];
+          } else { 
+            let finalDomainMinCalc = parseFloat(domainMinInputForTicks.toFixed(3));
+            let finalDomainMaxCalc = parseFloat(domainMaxInputForTicks.toFixed(3));
+             if (finalDomainMinCalc >= finalDomainMaxCalc) {
+                finalDomainMaxCalc = finalDomainMinCalc + (tightenYAxis ? 0.005 : 0.01);
+                 if (common01Metrics.includes(metricName)) {
+                    finalDomainMaxCalc = Math.min(1, finalDomainMaxCalc);
+                 }
+            }
+            yAxisDomainCalculated = [finalDomainMinCalc, finalDomainMaxCalc];
+            niceTicks = [yAxisDomainCalculated[0], yAxisDomainCalculated[1]]; 
+          }
         }
-        yAxisDomainCalculated = [finalDomainMinCalc, finalDomainMaxCalc];
-        niceTicks = [yAxisDomainCalculated[0], yAxisDomainCalculated[1]]; 
-      }
     }
   }
+
+
+  // Determine X-axis label properties based on chart type and screen size
+  let xAxisAngle = -45;
+  let xAxisTextAnchor: "end" | "middle" | "start" = "end";
+  let xAxisHeight = 70;
+  let xAxisTickFontSize = 10;
+
+  if (tightenYAxis) { // This prop identifies "Average Model Performance" charts
+    if (!isMobile) { // Horizontal labels for desktop/tablet on these specific charts
+      xAxisAngle = 0;
+      xAxisTextAnchor = "middle";
+      xAxisHeight = 30; 
+      xAxisTickFontSize = 11; // Slightly larger font for horizontal average charts
+    }
+    // On mobile, for these charts, it remains angled (-45, "end", 70, fontSize 10)
+  }
+  // For all other charts (tightenYAxis = false), it's always angled with fontSize 10.
 
 
   return (
@@ -493,11 +490,11 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, metricName, t
           <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
           <XAxis 
             dataKey="modelName" 
-            angle={-45} 
-            textAnchor="end" 
-            height={70}
+            angle={xAxisAngle} 
+            textAnchor={xAxisTextAnchor} 
+            height={xAxisHeight}
             interval={0}
-            tick={{ fontSize: 10, fill: '#4A5568' }} 
+            tick={{ fontSize: xAxisTickFontSize, fill: '#4A5568' }} 
           />
           <YAxis 
             domain={yAxisDomainCalculated}
@@ -505,10 +502,12 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, metricName, t
             tickFormatter={(value) => {
                 let precision;
                 const domainRange = yAxisDomainCalculated[1] - yAxisDomainCalculated[0];
+                const effectiveYAxisTickInterval = (tightenYAxis && common01MetricsForFixedScale.includes(metricName)) ? 0.1 : yAxisTickInterval;
 
-                if (typeof yAxisTickInterval === 'number' && yAxisTickInterval > 0) {
-                    if (Math.floor(yAxisTickInterval) === yAxisTickInterval) precision = 0;
-                    else precision = String(yAxisTickInterval).split('.')[1]?.length || 2;
+
+                if (typeof effectiveYAxisTickInterval === 'number' && effectiveYAxisTickInterval > 0) {
+                    if (Math.floor(effectiveYAxisTickInterval) === effectiveYAxisTickInterval) precision = 0;
+                    else precision = String(effectiveYAxisTickInterval).split('.')[1]?.length || 2;
                 } else {
                     precision = 2; 
                     if (domainRange > 0) {
@@ -519,7 +518,6 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, metricName, t
                         else if (domainRange < 10) precision = 1;
                         else precision = 0;
                     }
-                     // If ticks themselves imply higher precision
                     if (niceTicks.length >= 2) {
                         const step = Math.abs(niceTicks[1] - niceTicks[0]);
                         if (step > 0) {
@@ -529,8 +527,8 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, metricName, t
                         }
                     }
                 }
-
-
+                // Ensure 1.0 is formatted as "1.0" if precision is 1, not "1"
+                if (value === 1.0 && precision === 1) return "1.0";
                 if (typeof value === 'number') {
                      if (Math.abs(value) > 0 && Math.abs(value) < 1e-3 && precision > 2 && value !== 0) return value.toExponential(1); 
                      return value.toFixed(precision);

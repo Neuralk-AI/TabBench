@@ -42,7 +42,31 @@ const PerformanceTable: React.FC<PerformanceTableProps> = ({ results, title }) =
       if (indexB !== -1) return 1;  // B is in desired, A is not: B comes first
       return a.localeCompare(b); // Neither in desired, sort alphabetically
     });
-  }, [results]); // Recalculate if results (and thus rawMetricNames) change
+  }, [results]); 
+
+
+  // Pre-calculate top 3 values for each metric for highlighting
+  const topValuesByMetric: Record<string, { first?: number, second?: number, third?: number }> = useMemo(() => {
+    const R: Record<string, { first?: number, second?: number, third?: number }> = {};
+    metricNames.forEach(metricName => {
+        const values = results
+            .map(r => r.metrics.find(m => m.name === metricName)?.value)
+            .filter(v => typeof v === 'number' && !isNaN(v)) as number[];
+
+        if (values.length === 0) return;
+
+        const uniqueSortedValues = [...new Set(values)].sort((a, b) => {
+            return isHigherBetter(metricName) ? b - a : a - b; // Sort descending for "better"
+        });
+
+        R[metricName] = {
+            first: uniqueSortedValues.length > 0 ? uniqueSortedValues[0] : undefined,
+            second: uniqueSortedValues.length > 1 ? uniqueSortedValues[1] : undefined,
+            third: uniqueSortedValues.length > 2 ? uniqueSortedValues[2] : undefined,
+        };
+    });
+    return R;
+  }, [results, metricNames]);
 
 
   const sortedModelsData = useMemo(() => {
@@ -101,22 +125,6 @@ const PerformanceTable: React.FC<PerformanceTableProps> = ({ results, title }) =
     setSortConfig({ key, direction });
   };
   
-  // Pre-calculate best values for each metric for highlighting (unsorted data)
-  const bestValuesHighlighting: Record<string, number> = {};
-  metricNames.forEach(metricName => {
-    const values = results
-      .map(r => r.metrics.find(m => m.name === metricName)?.value)
-      .filter(v => typeof v === 'number' && !isNaN(v)) as number[];
-
-    if (values.length > 0) {
-      if (isHigherBetter(metricName)) {
-        bestValuesHighlighting[metricName] = Math.max(...values);
-      } else {
-        bestValuesHighlighting[metricName] = Math.min(...values);
-      }
-    }
-  });
-  
   const getSortIndicator = (key: string) => {
     if (!sortConfig || sortConfig.key !== key) {
       return <span className="opacity-50">↕</span>;
@@ -158,10 +166,19 @@ const PerformanceTable: React.FC<PerformanceTableProps> = ({ results, title }) =
                   <td className="px-4 py-3 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">{modelData.name}</td>
                   {metricNames.map(metricName => {
                     const value = modelData.metricsMap[metricName];
-                    const isBest = typeof value === 'number' && !isNaN(value) && value === bestValuesHighlighting[metricName];
-                    const cellClassName = `px-4 py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 ${
-                      isBest ? 'bg-green-100 text-green-800 font-semibold' : ''
-                    }`;
+                    const metricTopValues = topValuesByMetric[metricName]; 
+                    
+                    let cellClassName = `px-4 py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500`;
+
+                    if (typeof value === 'number' && !isNaN(value) && metricTopValues) {
+                        if (value === metricTopValues.first) {
+                            cellClassName += ' bg-green-300 text-green-900 font-semibold';
+                        } else if (value === metricTopValues.second) {
+                            cellClassName += ' bg-green-200 text-green-800 font-medium';
+                        } else if (value === metricTopValues.third) {
+                            cellClassName += ' bg-green-100 text-green-700';
+                        }
+                    }
                     return (
                       <td key={metricName} className={cellClassName}>
                         {typeof value === 'number' ? value.toFixed(metricName.toLowerCase().includes('latency') || metricName.toLowerCase().includes('time') ? 0 : 4) : 'N/A'}
