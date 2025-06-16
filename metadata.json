@@ -1,0 +1,6 @@
+{
+  "name": "TabBench Dashboard",
+  "description": "A React web application to visualize and compare the performance of different tabular models included in the TabBench benchmark.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
