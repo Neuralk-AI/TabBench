@@ -231,7 +231,7 @@ const IndustrialDatasetsPage: React.FC = () => {
     return productCategorizationDatasets.map(ds => ds.id);
   }, [productCategorizationDatasets]);
 
-  const averageMetricSelectorControls = (
+  const avgMetricSelectorControls = (
     <div className="flex justify-center w-full">
         <div id="avg-metric-select-group" role="group" className="inline-flex rounded-md shadow-sm">
         {avgProductCatSelectableMetrics.map((metric, idx) => ( 
@@ -336,29 +336,43 @@ const IndustrialDatasetsPage: React.FC = () => {
                 <h2 id="dataset-explorer-heading" className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-700 mb-2">
                   Datasets Explorer
                 </h2>
-                <p className="text-md text-gray-600 mb-4 md:mb-6">
-                This section explores industry datasets derived from a large, industry-grade retail database. Due to memory limitations, the database was split into individual datasets, each corresponding to a different complexity level (1–4) based on hierarchical grouping.                </p>
-                <div className="space-y-6">
-                  {productCatSummaryStats && (
-                    <div aria-labelledby="summary-stats-subheading">
-                      <h3 id="summary-stats-subheading" className="sr-only">Dataset Summary Statistics</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center mb-4">
-                        <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
-                          <p className="text-xs text-gray-500">Total Datasets</p>
-                          <p className="text-lg font-semibold text-[#1b998b]">{productCatSummaryStats.count}</p>
-                        </div>
-                        <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
-                          <p className="text-xs text-gray-500">Avg. Rows</p>
-                          <p className="text-lg font-semibold text-gray-700">{Number(productCatSummaryStats.avgRows).toLocaleString()}</p>
-                        </div>
-                        <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
-                          <p className="text-xs text-gray-500">Level Complexity</p>
-                          <p className="text-lg font-semibold text-gray-700">{productCatSummaryStats.levelComplexity}</p>
-                        </div>
+                <div className="text-md text-gray-600 space-y-2">
+                  <p>
+                    This section explores industry datasets derived from a large, industry-grade retail database with a hierarchical product ontology. The full product categorization spans four levels of depth, reflecting increasingly fine-grained classification. For example, a product like a jigsaw might be categorized as:
+                  </p>
+                  <p className="pl-4">
+                    <em>. → Tools/Equipment → Tools/Equipment → Saws → Jigsaws (Powered).</em>
+                  </p>
+                  <p>
+                    To manage memory constraints and enable focused analysis, the original database was split into four separate datasets, each corresponding to a different complexity level (Levels 1–4). These levels represent increasing granularity in the product taxonomy:
+                  </p>
+                  <ul className="list-disc list-inside pl-4 space-y-1">
+                    <li>Level 1 includes 48 broad categories,</li>
+                    <li>Level 2 expands to 102 mid-level categories,</li>
+                    <li>Level 3 captures 383 more specific subcategories, and</li>
+                    <li>Level 4 reaches 1218 highly detailed leaf-level categories.</li>
+                  </ul>
+                  <p className="mb-8 md:mb-10 lg:mb-12">
+                    This hierarchical structure allows for progressive evaluation of models, where categorization becomes more challenging at deeper levels due to the increasing number of categories and their semantic similarity.
+                  </p>
+                </div>
+                
+                {productCatSummaryStats && (
+                  <div aria-labelledby="summary-stats-subheading" className="mt-6 md:mt-8">
+                    <h3 id="summary-stats-subheading" className="sr-only">Dataset Summary Statistics</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center mb-4">
+                      <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
+                        <p className="text-xs text-gray-500">Total Datasets</p>
+                        <p className="text-lg font-semibold text-[#1b998b]">{productCatSummaryStats.count}</p>
+                      </div>
+                      <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
+                        <p className="text-xs text-gray-500">Avg. Rows</p>
+                        <p className="text-lg font-semibold text-gray-700">{Number(productCatSummaryStats.avgRows).toLocaleString()}</p>
                       </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+                
               </section>
 
               {averagePerformanceTableResults.length > 0 && (
@@ -376,7 +390,7 @@ const IndustrialDatasetsPage: React.FC = () => {
                             data={averagePerformanceChartData}
                             metricName={selectedAvgProductCatMetric}
                             title={`Average Performance (${selectedAvgProductCatMetric})`}
-                            headerControls={averageMetricSelectorControls}
+                            headerControls={avgMetricSelectorControls}
                             tightenYAxis={true}
                         />
                     ) : (

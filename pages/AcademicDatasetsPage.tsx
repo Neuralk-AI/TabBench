@@ -244,43 +244,43 @@ const AcademicDatasetsPage: React.FC = () => {
             <p className="text-md text-gray-600 mb-4 md:mb-6">
               This section explores {academicDatasetsForExplorer.length} OpenML datasets used for academic benchmarking. These datasets are standard in ML research and provide a basis for comparing model performance on well-understood classification tasks. 
             </p>
-            <div className="space-y-6">
-              {academicSummaryStats && (
-                <div aria-labelledby="academic-summary-stats-subheading">
-                  <h3 id="academic-summary-stats-subheading" className="sr-only">Academic Dataset Summary Statistics</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-center mb-4">
-                    <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
-                      <p className="text-xs text-gray-500">Total Datasets</p>
-                      <p className="text-lg font-semibold text-[#1b998b]">{academicSummaryStats.count}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
-                      <p className="text-xs text-gray-500">Avg. Rows</p>
-                      <p className="text-lg font-semibold text-gray-700">{academicSummaryStats.avgRows}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
-                      <p className="text-xs text-gray-500">Rows Range</p>
+            
+            {academicSummaryStats && (
+              <div aria-labelledby="academic-summary-stats-subheading" className="mt-6 md:mt-8">
+                <h3 id="academic-summary-stats-subheading" className="sr-only">Academic Dataset Summary Statistics</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-center mb-4">
+                  <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
+                    <p className="text-xs text-gray-500">Total Datasets</p>
+                    <p className="text-lg font-semibold text-[#1b998b]">{academicSummaryStats.count}</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
+                    <p className="text-xs text-gray-500">Avg. Rows</p>
+                    <p className="text-lg font-semibold text-gray-700">{academicSummaryStats.avgRows}</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
+                    <p className="text-xs text-gray-500">Rows Range</p>
+                    <p className="text-lg font-semibold text-gray-700">
+                      {typeof academicSummaryStats.minRows === 'number' ? academicSummaryStats.minRows.toLocaleString() : academicSummaryStats.minRows} - {typeof academicSummaryStats.maxRows === 'number' ? academicSummaryStats.maxRows.toLocaleString() : academicSummaryStats.maxRows}
+                    </p>
+                  </div>
+                  <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
+                    <p className="text-xs text-gray-500">Avg. Features</p>
+                    <p className="text-lg font-semibold text-gray-700">{academicSummaryStats.avgFeatures}</p>
+                  </div>
+                    <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200 sm:col-start-2 md:col-start-auto">
+                      <p className="text-xs text-gray-500">Features Range</p>
                       <p className="text-lg font-semibold text-gray-700">
-                        {typeof academicSummaryStats.minRows === 'number' ? academicSummaryStats.minRows.toLocaleString() : academicSummaryStats.minRows} - {typeof academicSummaryStats.maxRows === 'number' ? academicSummaryStats.maxRows.toLocaleString() : academicSummaryStats.maxRows}
+                      {typeof academicSummaryStats.minFeatures === 'number' ? academicSummaryStats.minFeatures.toLocaleString() : academicSummaryStats.minFeatures} - {typeof academicSummaryStats.maxFeatures === 'number' ? academicSummaryStats.maxFeatures.toLocaleString() : academicSummaryStats.maxFeatures}
                       </p>
-                    </div>
-                    <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
-                      <p className="text-xs text-gray-500">Avg. Features</p>
-                      <p className="text-lg font-semibold text-gray-700">{academicSummaryStats.avgFeatures}</p>
-                    </div>
-                     <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200 sm:col-start-2 md:col-start-auto">
-                        <p className="text-xs text-gray-500">Features Range</p>
-                        <p className="text-lg font-semibold text-gray-700">
-                        {typeof academicSummaryStats.minFeatures === 'number' ? academicSummaryStats.minFeatures.toLocaleString() : academicSummaryStats.minFeatures} - {typeof academicSummaryStats.maxFeatures === 'number' ? academicSummaryStats.maxFeatures.toLocaleString() : academicSummaryStats.maxFeatures}
-                        </p>
-                    </div>
                   </div>
                 </div>
-              )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <DatasetDistributionChart data={rowsDistributionDataAcademic} title="Distribution by Rows" barColor="#14b8a6" />
-                <DatasetDistributionChart data={featuresDistributionDataAcademic} title="Distribution by Features" barColor="#0d9488" />
               </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-6"> {/* Added mt-4 here */}
+              <DatasetDistributionChart data={rowsDistributionDataAcademic} title="Distribution by Rows" barColor="#14b8a6" />
+              <DatasetDistributionChart data={featuresDistributionDataAcademic} title="Distribution by Features" barColor="#0d9488" />
             </div>
+            
           </section>
 
           {averageAcademicResultsForTable.length > 0 && (
