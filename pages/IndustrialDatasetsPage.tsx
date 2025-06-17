@@ -100,7 +100,7 @@ const IndustrialDatasetsPage: React.FC = () => {
     pageDescription = "Product categorization is a key task in Commerce, involving the classification of products into structured categories using complex, high-dimensional tabular data. This section evaluates model performance on real industrial datasets, provided by partner companies and used in actual production environments for product categorization.";
   } else if (useCaseSlug === 'deduplication') {
     pageTitle = 'Industrial use case: Deduplication 🧹';
-    pageDescription = `This section will evaluate models on datasets designed for identifying duplicate records in product listings or customer databases. Benchmarking data and insights are coming soon.`;
+    pageDescription = `This section will evaluate models on an industry deduplication task where a model has to identify duplicate records in product listings or customer databases. Benchmarking data and insights are coming soon.`;
   } else if (useCaseSlug) {
     pageTitle = `Industrial: ${getUseCaseDisplayName(useCaseSlug)}`;
     if (industrialDatasetsForPage.length > 0) {
