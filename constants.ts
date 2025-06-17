@@ -400,10 +400,10 @@ export const newAverageAcademicDataset: Dataset = {
     description: `Average performance across ${datasetsToAverageOver.length} selected OpenML classification datasets. This provides a general overview of model performance on common academic benchmarks. Only datasets with available, non-NaN results for a given model contribute to that model's average for each metric.`,
     source: 'Aggregated from OpenML.org / User-specified',
     rows: parseFloat((datasetsToAverageOver.reduce((sum, ds) => sum + ds.rows, 0) / (datasetsToAverageOver.length || 1)).toFixed(0)),
-    features: parseFloat((datasetsToAverageOver.reduce((sum, ds) => sum + (ds.features as number), 0) / (datasetsToAverageOver.length || 1)).toFixed(1)),
+    features: datasetsToAverageOver.length > 0 ? Math.floor(datasetsToAverageOver.reduce((sum, ds) => sum + (ds.features as number), 0) / datasetsToAverageOver.length) : 0,
     task: 'Average Classification Performance',
     targetVariable: 'N/A',
-    hasRealCounts: true, // Marking true as it's derived from datasets with real counts
+    hasRealCounts: true, 
     numClasses: 'Varies',
 };
 
