@@ -13,9 +13,9 @@ const HomePage: React.FC = () => {
   // ];
 
   const dashboardFeatures = [
-    "Explore Datasets & Tasks: Access detailed information and statistics for industrial datasets tied to real-world use cases like Product Categorization and Deduplication, as well as academic datasets covering general tasks like classification.",
+    "Explore Datasets & Tasks: Access information and statistics for industrial datasets tied to industry use cases like Product Categorization and Deduplication, as well as academic datasets covering general tasks like classification.",
     "Visualize Performance: Interactively explore model results with dynamic plots and sortable tables across key performance metrics like Accuracy, F1-score and ROC-AUC.",
-    "Compare Models: For each dataset, quickly benchmark models side by side for every industrial use cases or academic task to understand their strengths across different scenarios.",
+    "Compare Models: For each dataset and use case, quickly compare models side by side to understand their strengths across different scenarios.",
   ];
 
 
@@ -38,7 +38,7 @@ const HomePage: React.FC = () => {
           </h3>
         </div>
         <p className="text-gray-700 text-sm sm:text-base leading-normal sm:leading-snug">
-        Use the menu to explore performance on <strong className="text-[#1b998b]">Industrial</strong> datasets built around real industrial use cases like Product Categorization and Deduplication, or check out <strong className="text-[#1b998b]">Academic</strong> benchmarks for comparison on more standardized, well-known tasks.
+        Use the menu to explore performance on <strong className="text-[#1b998b]">Industrial</strong> datasets built around real industry use cases like Product Categorization and Deduplication, or check out <strong className="text-[#1b998b]">Academic</strong> benchmarks for comparison on more standardized, well-known tasks.
 
         </p>
           <p className="text-gray-700 text-sm sm:text-base leading-normal sm:leading-snug">
@@ -62,6 +62,16 @@ const HomePage: React.FC = () => {
             <p>
               Rather than evaluating models on generic ML tasks like most benchmarks, TabBench shows how they perform in these real, industry-grade scenarios, helping you confidently choose the solutions that work best in production and not just in theory.
             </p>
+          </div>
+        </section>
+
+          <section className="mt-8 md:mt-10">
+          <h2 className="text-2xl sm:text-2xl font-semibold text-gray-800 mb-4 md:mb-5 text-center md:text-left">
+            NICL, a Tabular Foundation Model by Neuralk-AI 
+          </h2>
+          <div className="space-y-4 text-gray-700 leading-normal sm:leading-snug text-sm sm:text-base"> {/* Enhanced line height */}
+            <p>
+            The TabBench Dashboard offers the first performance results of NICL (Neuralk In-Context-Learning), a novel Tabular Foundation Model developed by Neuralk-AI, delivering state-of-the-art performance on industrial use cases. Navigate through the dashboard to start exploring the results.            </p>
           </div>
         </section>
 
