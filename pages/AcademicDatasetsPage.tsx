@@ -362,7 +362,7 @@ const AcademicDatasetsPage: React.FC = () => {
 
              {currentAcademicDataset ? (
                 <div key={currentAcademicDataset.id} className="animate-fadeIn">
-                    <DatasetCard dataset={currentAcademicDataset} />
+                    <DatasetCard dataset={currentAcademicDataset} hideNumClasses={true} />
                     
                     {(() => {
                         const datasetResults = RESULTS.filter(r => r.datasetId === currentAcademicDataset.id);

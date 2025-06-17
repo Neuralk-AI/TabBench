@@ -3,6 +3,7 @@ import { Dataset } from '../types';
 
 interface DatasetCardProps {
   dataset: Dataset;
+  hideNumClasses?: boolean; // New optional prop
 }
 
 const InfoPill: React.FC<{label: string, value: string | number, className?: string}> = ({label, value, className = 'bg-[#d1e9e6] text-[#105c52]'}) => (
@@ -11,7 +12,7 @@ const InfoPill: React.FC<{label: string, value: string | number, className?: str
   </span>
 );
 
-const DatasetCard: React.FC<DatasetCardProps> = ({ dataset }) => {
+const DatasetCard: React.FC<DatasetCardProps> = ({ dataset, hideNumClasses = false }) => {
   const levelFromFile = dataset.batchFile?.match(/level_(\d+)/)?.[1];
 
   return (
@@ -46,7 +47,7 @@ const DatasetCard: React.FC<DatasetCardProps> = ({ dataset }) => {
             {typeof dataset.features === 'string' ? dataset.features : dataset.features.toLocaleString()}
           </p>
         </div>
-        {dataset.numClasses !== undefined && (
+        {!hideNumClasses && dataset.numClasses !== undefined && (
             <div className="bg-gray-50 p-3 rounded-md text-center sm:text-left">
                 <p className="text-gray-500 font-medium text-xs sm:text-sm">Classes</p>
                 <p className="text-gray-800 font-semibold text-base sm:text-lg">
