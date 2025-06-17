@@ -12,7 +12,7 @@ const ContributePage: React.FC = () => {
       </header>
       <section className="p-4 sm:p-5 bg-gradient-to-r from-teal-50 to-green-50 rounded-lg border border-teal-200 text-center shadow-sm">
           <p className="text-gray-700 text-sm sm:text-base mb-3">
-              Curious how TabBench models perform on your company’s private data?
+              Curious how TabBench models perform on your industrial data?
           </p>
           <a
             href="https://www.neuralk-ai.com/contact"
