@@ -2,23 +2,6 @@
 import React from 'react';
 
 const HomePage: React.FC = () => {
-  // Previous features array commented out or removed
-  // const features = [
-  //   "A focus on critical, industry use cases to ensure models are evaluated on problems that actually matter in production.",
-  //   "Extensive evaluation on public & private industry datasets shared from partner companies.",
-  //   "Further evaluation on synthetic and academic datasets for fair model comparison.",
-  //   "Easy identification of top-performing tabular models via the TabBench Dashboard.",
-  //   "Simple workflow logic with standardized preprocessing, training, and evaluation steps across all models.",
-  //   "Neuralk Foundry, a modular framework designed to help you quickly build and experiment with data processing workflows."
-  // ];
-
-  const dashboardFeatures = [
-    "Explore datasets & tasks: Access information and statistics for industrial datasets tied to industry use cases like Product Categorization and Deduplication, as well as academic datasets covering general tasks like classification.",
-    "Visualize performance: Interactively explore model results with dynamic plots and sortable tables across key performance metrics like Accuracy, F1-score and ROC-AUC.",
-    "Compare models: For each dataset and use case, quickly compare models side by side to understand their strengths across different scenarios.",
-    "Advanced resources to explore TabBench code and notebooks: Get hands-on with detailed example notebooks and open-source code to run TabBench yourself, including full access to both the TabBench benchmark and the Neuralk Foundry framework (available via the menu)",
-  ];
-
 
   return (
     <div className="space-y-8 md:space-y-10 lg:space-y-12 bg-white rounded-lg">
@@ -71,7 +54,7 @@ const HomePage: React.FC = () => {
           </h2>
           <div className="space-y-4 text-gray-700 leading-normal sm:leading-snug text-sm sm:text-base"> {/* Enhanced line height */}
             <p>
-            The TabBench Dashboard presents the first performance results of NICL (Neuralk In-Context-Learning), a novel Tabular Foundation Model developed by Neuralk-AI, delivering state-of-the-art performance on industrial use cases. Navigate through the dashboard to start exploring the results.            </p>
+            The TabBench Dashboard gives you a first glance at the performance of NICL (Neuralk In-Context-Learning), a novel Tabular Foundation Model developed by Neuralk-AI, delivering state-of-the-art performance on industrial use cases. Navigate through the dashboard to start exploring the results.            </p>
           </div>
         </section>
 
@@ -83,14 +66,38 @@ const HomePage: React.FC = () => {
           The TabBench Dashboard makes it easy to explore how ML models perform across different tabular datasets and use cases. Here’s what you can do:
           </p>
           <ul className="space-y-3 sm:space-y-4">
-            {dashboardFeatures.map((feature, index) => (
-              <li key={index} className="flex items-start">
-                <svg className="flex-shrink-0 h-5 w-5 text-[#1b998b] mr-3 mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                <span className="text-gray-700 leading-normal sm:leading-snug text-sm sm:text-base">{feature}</span>
-              </li>
-            ))}
+            <li className="flex items-start">
+              <svg className="flex-shrink-0 h-5 w-5 text-[#1b998b] mr-3 mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              <span className="text-gray-700 leading-normal sm:leading-snug text-sm sm:text-base">
+                <strong>Explore datasets &amp; tasks:</strong> Access information and statistics for industrial datasets tied to industry use cases like Product Categorization and Deduplication, as well as academic datasets covering general tasks like classification.
+              </span>
+            </li>
+            <li className="flex items-start">
+              <svg className="flex-shrink-0 h-5 w-5 text-[#1b998b] mr-3 mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              <span className="text-gray-700 leading-normal sm:leading-snug text-sm sm:text-base">
+                <strong>Visualize performance:</strong> Interactively explore model results with dynamic plots and sortable tables across key performance metrics like Accuracy, F1-score and ROC-AUC.
+              </span>
+            </li>
+            <li className="flex items-start">
+              <svg className="flex-shrink-0 h-5 w-5 text-[#1b998b] mr-3 mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              <span className="text-gray-700 leading-normal sm:leading-snug text-sm sm:text-base">
+                <strong>Compare models:</strong> For each dataset and use case, quickly compare models side by side to understand their strengths across different scenarios.
+              </span>
+            </li>
+            <li className="flex items-start">
+              <svg className="flex-shrink-0 h-5 w-5 text-[#1b998b] mr-3 mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              <span className="text-gray-700 leading-normal sm:leading-snug text-sm sm:text-base">
+                <strong>Advanced resources to explore TabBench code and notebooks:</strong> Get hands-on with detailed example notebooks and open-source code to run TabBench yourself, including full access to both the TabBench benchmark and the Neuralk Foundry framework (available via the menu)
+              </span>
+            </li>
           </ul>
         </section>
       </div>
