@@ -31,8 +31,8 @@ const HomePage: React.FC = () => {
         </p>
       </header>
 
-      {/* Get Started Box - Moved Up */}
-      <section className="space-y-4 p-5 sm:p-6 bg-gradient-to-r from-[#e0f2f1] to-[#e8f5f3] rounded-lg border border-[#a6dbd4]">
+      {/* Get Started Box - Moved Up, hidden on md screens and up */}
+      <section className="space-y-4 p-5 sm:p-6 bg-gradient-to-r from-[#e0f2f1] to-[#e8f5f3] rounded-lg border border-[#a6dbd4] md:hidden">
         <div className="flex items-center mb-3 sm:mb-4"> {/* Increased bottom margin */}
           <h3 className="text-xl sm:text-2xl font-bold text-[#127064]"> {/* Bolder title */}
           Get Started
@@ -58,8 +58,7 @@ const HomePage: React.FC = () => {
             TabBench is the first open-source benchmark designed to test ML models on real enterprise data and use cases.
             </p>
             <p>
-              It begins with a focus on Commerce, tackling key use cases like <strong className="text-[#127064]">Product categorization</strong> and <strong className="text-[#127064]">Deduplication</strong>, where data is complex, messy, and high-dimensional, reflecting the challenges data teams face every day.
-            </p>
+              It begins with a focus on Commerce, tackling key use cases like <a href="https://tabbench-dashboard.netlify.app/#/industrial/product-categorization" className="text-[#127064] font-semibold">Product categorization</a> and <a href="https://tabbench-dashboard.netlify.app/#/industrial/deduplication"  className="text-[#127064] font-semibold">Deduplication</a>, where data is complex, messy, and high-dimensional, reflecting the challenges data teams face every day.            </p>
             <p>
               Rather than evaluating models on generic ML tasks like most benchmarks, TabBench shows how they perform in these real, industry-grade scenarios, helping you confidently choose the solutions that work best in production and not just in theory.
             </p>

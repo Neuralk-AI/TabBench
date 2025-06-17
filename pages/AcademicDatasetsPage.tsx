@@ -166,11 +166,21 @@ const AcademicDatasetsPage: React.FC = () => {
 
   useEffect(() => {
     const currentIsValid = currentAcademicDataset && academicDatasetsForExplorer.some(d => d.id === currentAcademicDataset.id);
+
     if (academicDatasetsForExplorer.length > 0 && !currentIsValid) {
+      // Try to set "Balance Scale" as default
+      const balanceScaleDataset = academicDatasetsForExplorer.find(ds => ds.name === 'Balance Scale');
+      if (balanceScaleDataset) {
+        setCurrentAcademicDataset(balanceScaleDataset);
+      } else {
+        // Fallback to the first dataset if "Balance Scale" is not found
         setCurrentAcademicDataset(academicDatasetsForExplorer[0]);
+      }
     } else if (academicDatasetsForExplorer.length === 0) {
-        setCurrentAcademicDataset(null);
+      // If there are no datasets, set current to null
+      setCurrentAcademicDataset(null);
     }
+    // If currentAcademicDataset is already valid, do nothing, preserving user selection.
   }, [academicDatasetsForExplorer, currentAcademicDataset]);
 
 

@@ -29,7 +29,7 @@ const DatasetDistributionChart: React.FC<DatasetDistributionChartProps> = ({
     <div className="bg-white shadow-md rounded-lg p-3 sm:p-4 md:p-4 border border-gray-200 h-full">
       <h5 className="text-sm sm:text-md font-semibold text-gray-700 mb-3 md:mb-4 text-center">{title}</h5>
       <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={data} margin={{ top: 5, right: 5, left: -25, bottom: 30 }}>
+        <BarChart data={data} margin={{ top: 5, right: 5, left: 0, bottom: 30 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
           <XAxis
             dataKey="name"
