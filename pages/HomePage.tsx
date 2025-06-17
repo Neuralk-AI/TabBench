@@ -41,7 +41,7 @@ const HomePage: React.FC = () => {
             TabBench is the first open-source benchmark designed to test ML models on real enterprise data and use cases.
             </p>
             <p>
-              It begins with a focus on Commerce, tackling key use cases like <a href="https://tabbench-dashboard.netlify.app/#/industrial/product-categorization" className="text-[#127064] font-semibold">Product categorization</a> and <a href="https://tabbench-dashboard.netlify.app/#/industrial/deduplication"  className="text-[#127064] font-semibold">Deduplication</a>, where data is complex, messy, and high-dimensional, reflecting the challenges data teams face every day.            </p>
+              It begins with a focus on Commerce, tackling key use cases like <a href="https://dashboard.neuralk-ai.com/#/industrial/product-categorization" className="text-[#127064] font-semibold">Product categorization</a> and <a href="https://dashboard.neuralk-ai.com/#/industrial/deduplication"  className="text-[#127064] font-semibold">Deduplication</a>, where data is complex, messy, and high-dimensional, reflecting the challenges data teams face every day.            </p>
             <p>
               Rather than evaluating models on generic ML tasks like most benchmarks, TabBench shows how they perform in these real, industry-grade scenarios, helping you confidently choose the models that work best in production and not just in theory.
             </p>
@@ -113,7 +113,7 @@ const HomePage: React.FC = () => {
           </h3>
         </div>
         <p className="text-gray-700 text-sm sm:text-base leading-normal sm:leading-snug mb-3">
-        Interested to evaluate models on your private company data and use cases?
+        Interested to evaluate models on your industrial data and use cases?
         </p>
         <p className="text-gray-700 text-sm sm:text-base leading-normal sm:leading-snug">
             <a 
