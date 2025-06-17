@@ -19,16 +19,13 @@ const ContributePage: React.FC = () => {
                 We welcome contributions from the community! Whether you're interested in adding new models, datasets, improving the dashboard, or fixing bugs, your help is valuable.
             </p>
             <p>
-                <strong>Code Contributions:</strong> Our project is open source. You can find our GitHub repository (link to be added soon) to fork the project, make your changes, and submit a pull request. Please follow our coding guidelines and ensure your contributions are well-tested.
+                <strong>Dataset Submissions:</strong> If you have a relevant dataset that you believe would be a valuable addition to TabBench (especially private industry datasets), please <a className="font-semibold text-[#127064]" href="https://www.neuralk-ai.com/contact">contact us</a>. We have a process for evaluating and integrating new datasets while respecting data privacy and terms of use.
             </p>
             <p>
-                <strong>Dataset Submissions:</strong> If you have a relevant dataset that you believe would be a valuable addition to TabBench (especially private industry datasets where performance truly matters), please contact us. We have a process for evaluating and integrating new datasets while respecting data privacy and terms of use.
+                <strong>Model Submissions:</strong> We’re actively keeping an eye on the latest research to integrate new models in TabBench. If you think we’ve missed an important publication-backed model that deserves to be benchmarked, please <a className="font-semibold text-[#127064]" href="https://www.neuralk-ai.com/contact">reach out to us</a>. 
             </p>
             <p>
-                <strong>Model Submissions:</strong> We aim to include a diverse range of tabular models. If you have a model that you'd like to see benchmarked, please refer to our contribution guidelines for model submissions.
-            </p>
-            <p>
-                <strong>Bug Reports & Feature Requests:</strong> Found a bug or have an idea for a new feature? Please submit an issue on our GitHub repository.
+                <strong>Bug Reports & Feature Requests:</strong> Found a bug or have an idea for a new feature? Please submit an issue on our <a className="font-semibold text-[#127064]" href="https://github.com/Neuralk-AI/TabBench/"> GitHub repository </a>.
             </p>
             <p>
                 More detailed instructions and guidelines will be available here soon.

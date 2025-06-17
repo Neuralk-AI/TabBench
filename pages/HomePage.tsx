@@ -54,8 +54,8 @@ const HomePage: React.FC = () => {
           </h2>
           <div className="space-y-4 text-gray-700 leading-normal sm:leading-snug text-sm sm:text-base"> {/* Enhanced line height */}
             <p>
-              Curious how ML models perform on real industrial datasets — the kind of complex, messy data enterprises actually use?
-              TabBench makes it possible by being the first benchmark designed to evaluate ML models on industry-grade tabular datasets and use cases.            </p>
+            TabBench is the first open-source benchmark designed to test ML models on real enterprise data and use cases.
+            </p>
             <p>
               It begins with a focus on Commerce, tackling key use cases like <strong className="text-[#127064]">Product categorization</strong> and <strong className="text-[#127064]">Deduplication</strong>, where data is complex, messy, and high-dimensional, reflecting the challenges data teams face every day.
             </p>
