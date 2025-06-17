@@ -10,6 +10,19 @@ const ContributePage: React.FC = () => {
           Help us improve the TabBench benchmark and dashboard.
         </p>
       </header>
+      <section className="p-4 sm:p-5 bg-gradient-to-r from-teal-50 to-green-50 rounded-lg border border-teal-200 text-center shadow-sm">
+          <p className="text-gray-700 text-sm sm:text-base mb-3">
+              Curious how TabBench models perform on your company’s private data?
+          </p>
+          <a
+            href="https://www.neuralk-ai.com/contact"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block bg-[#1b998b] text-white font-semibold px-5 py-2.5 rounded-lg shadow-md hover:bg-[#157f71] focus:outline-none focus:ring-2 focus:ring-[#1b998b] focus:ring-offset-2 transition-colors duration-150 text-sm"
+          >
+            Reach out to get started
+          </a>
+       </section>
       <section className="p-4 sm:p-6 bg-slate-50 rounded-lg shadow-md border border-slate-200">
         <h2 className="text-lg sm:text-xl font-semibold text-gray-700 mb-4">
           How to Contribute
