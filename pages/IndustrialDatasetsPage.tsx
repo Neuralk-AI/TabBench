@@ -363,7 +363,7 @@ const IndustrialDatasetsPage: React.FC = () => {
                     <em>Tools/Equipment → Tools/Equipment → Saws → Jigsaw</em>
                   </p>
                   <p>
-                    To manage memory constraints and enable focused analysis, the original database was split into four separate datasets, each corresponding to a different complexity level (Levels 1–4). These levels represent increasing granularity in the product taxonomy:
+                    To manage memory constraints and enable focused analysis, the original database was split into 36 separate datasets, each corresponding to a different complexity level (Levels 1–4). These levels represent increasing granularity in the product taxonomy:
                   </p>
                   <ul className="list-disc list-inside pl-4 space-y-1">
                     <li>Level 1 includes 48 broad categories,</li>
@@ -374,19 +374,11 @@ const IndustrialDatasetsPage: React.FC = () => {
                   <p className="mb-8 md:mb-10 lg:mb-12">
                     This hierarchical structure allows for progressive evaluation of models, where categorization becomes more challenging at deeper levels due to the increasing number of categories and their semantic similarity.
                   </p>
+                   <p className="mb-8 md:mb-10 lg:mb-12">
+                     Each dataset contains a title and description column. These fields are embedded independently using the <a href="https://huggingface.co/intfloat/multilingual-e5-base" className="text-[#127064] font-semibold">intfloat/multilingual-e5-base</a> model, producing two vectors of 768 dimensions. To reduce dimensionality and create a compact input for tabular models, PCA (n_components=50) is applied separately to each embedding. The final representation consists of 100 numerical features per sample.
+                  </p>
                 </div>
 
-                <div className="mt-3 md:mt-4 py-4">
-                   <p className="text-md text-gray-600 mb-4">
-                    The evaluation results are generated using an optimized Workflow tailored to each specific use case. Below is an example illustrating the Workflow process for XGBoost — the same logic applies to all other models assessed. For a deeper understanding, you can explore our <a href="https://github.com/Neuralk-AI/TabBench/tree/main/tutorials" className="text-[#127064] font-semibold">Notebooks</a> to see the Workflows in action.
-                  </p>
-                  <img 
-                    src="https://raw.githubusercontent.com/Neuralk-AI/TabBench/refs/heads/dashboard/workflow.png" 
-                    alt="Example Workflow for XGBoost Evaluation" 
-                    className="w-full max-w-3xl mx-auto rounded-lg shadow-md border border-gray-300" 
-                  />
-                </div>
-                
                 {productCatSummaryStats && (
                   <div aria-labelledby="summary-stats-subheading" className="mt-6 md:mt-8">
                     <h3 id="summary-stats-subheading" className="sr-only">Dataset Summary Statistics</h3>
@@ -401,11 +393,27 @@ const IndustrialDatasetsPage: React.FC = () => {
                       </div>
                        <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
                         <p className="text-xs text-gray-500">Features</p>
-                        <p className="text-base sm:text-lg font-semibold text-gray-800">Title, Description</p>
+                        <p className="text-base sm:text-lg font-semibold text-gray-800">100</p>
                       </div>
                     </div>
                   </div>
                 )}
+
+                <div className="mt-3 md:mt-4 py-4">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-700 mb-2">
+                    Evaluation process
+                  </h2>
+                   <p className="text-md text-gray-600 mb-4">
+                    The evaluation results are generated using an optimized TabBench Workflow tailored to each specific use case. Below is an example illustrating the Workflow process for XGBoost — the same logic applies to all other models assessed. For a deeper understanding, you can explore our <a href="https://github.com/Neuralk-AI/TabBench/tree/main/tutorials" className="text-[#127064] font-semibold">Notebooks</a> to see the Workflows in action.
+                  </p>
+                  <img 
+                    src="https://raw.githubusercontent.com/Neuralk-AI/TabBench/refs/heads/dashboard/workflow.png" 
+                    alt="Example Workflow for XGBoost Evaluation" 
+                    className="w-full max-w-3xl mx-auto rounded-lg shadow-md border border-gray-300" 
+                  />
+                </div>
+                
+            
                 
               </section>
 
