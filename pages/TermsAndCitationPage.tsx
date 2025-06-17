@@ -7,7 +7,7 @@ const TermsAndCitationPage: React.FC = () => {
       <header className="pb-1 md:pb-1">
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">Terms & Citation</h1>
         <p className="text-s sm:text-md text-gray-600 mt-1">
-          Guidelines for using TabBench resources and how to cite our work.
+          Guidelines for using TabBench resources and citing our work.
         </p>
       </header>
       <section className="p-4 sm:p-6 bg-slate-50 rounded-lg shadow-md border border-slate-200">
