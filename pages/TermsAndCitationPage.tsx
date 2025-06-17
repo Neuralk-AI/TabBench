@@ -15,7 +15,7 @@ const TermsAndCitationPage: React.FC = () => {
           Terms of Use
         </h2>
         <p className="text-gray-600 mb-4">
-            The TabBench dashboard and associated code are provided under an <a className="font-semibold text-[#127064]" href="https://github.com/Neuralk-AI/TabBench/blob/main/LICENSE"> open-source license</a>. Private industry datasets remain confidential and are governed partnership agreements. 
+            The TabBench dashboard and associated code are provided under an <a className="font-semibold text-[#127064]" href="https://github.com/Neuralk-AI/TabBench/blob/main/LICENSE"> open-source license</a>. Private industry datasets remain confidential and are governed under partnership agreements. 
         </p>
      
 
@@ -23,7 +23,7 @@ const TermsAndCitationPage: React.FC = () => {
           How to Cite TabBench
         </h2>
         <p className="text-gray-600 mb-2">
-            If you use TabBench resources (benchmark, datasets, dashboard, or findings) in your research or work, please cite our primary publication:
+            If you use TabBench resources (benchmark, datasets, dashboard, or findings) in your research or work, please cite our work:
         </p>
         <div className="p-3 bg-gray-100 rounded-md text-sm text-gray-700 border border-gray-300">
             <p className="font-mono">

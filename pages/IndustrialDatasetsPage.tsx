@@ -7,7 +7,7 @@ import DatasetCard from '../components/DatasetCard';
 import PerformanceChart from '../components/PerformanceChart';
 import PerformanceTable from '../components/PerformanceTable';
 import DatasetDistributionChart from '../components/DatasetDistributionChart';
-import CC18CrossModelPerformanceTable from '../components/CC18CrossModelPerformanceTable'; // Added import
+import CrossModelPerformanceTable from '../components/CrossModelPerformanceTable'; // Updated import
 
 const getUseCaseDisplayName = (slug: string): string => {
   return slug
@@ -519,7 +519,7 @@ const IndustrialDatasetsPage: React.FC = () => {
               
               {productCategorizationDatasetIds.length > 0 && (
                 <section className="mt-10 md:mt-12">
-                    <CC18CrossModelPerformanceTable 
+                    <CrossModelPerformanceTable 
                         datasetIds={productCategorizationDatasetIds}
                         title="Overview of performance on individual datasets"
                     />

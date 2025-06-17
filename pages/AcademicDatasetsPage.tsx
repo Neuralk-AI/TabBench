@@ -6,7 +6,7 @@ import DatasetCard from '../components/DatasetCard';
 import PerformanceChart from '../components/PerformanceChart';
 import PerformanceTable from '../components/PerformanceTable';
 import DatasetDistributionChart from '../components/DatasetDistributionChart';
-import CC18CrossModelPerformanceTable from '../components/CC18CrossModelPerformanceTable';
+import CrossModelPerformanceTable from '../components/CrossModelPerformanceTable';
 
 const AcademicDatasetsPage: React.FC = () => {
   const [selectedAvgAcademicMetric, setSelectedAvgAcademicMetric] = useState<string>('Accuracy');
@@ -403,7 +403,7 @@ const AcademicDatasetsPage: React.FC = () => {
 
           {individualAcademicDatasetIds.length > 0 && (
             <section className="mt-10 md:mt-12">
-                <CC18CrossModelPerformanceTable 
+                <CrossModelPerformanceTable 
                     datasetIds={individualAcademicDatasetIds}
                     title="Overview of performance on individual datasets"
                 />

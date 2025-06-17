@@ -3,9 +3,8 @@ import React, { useState, useMemo } from 'react';
 import { Model, Dataset, PerformanceResult, Metric } from '../types';
 import { MODELS, DATASETS, RESULTS } from '../constants';
 
-interface CC18CrossModelPerformanceTableProps {
+interface CrossModelPerformanceTableProps {
   datasetIds: string[];
-  // metricName: string; // Prop removed, will be managed by internal state
   title?: string;
 }
 
@@ -32,7 +31,7 @@ const extractDatasetNumber = (name: string): number => {
   return Infinity;
 };
 
-const CC18CrossModelPerformanceTable: React.FC<CC18CrossModelPerformanceTableProps> = ({
+const CrossModelPerformanceTable: React.FC<CrossModelPerformanceTableProps> = ({
   datasetIds,
   title,
 }) => {
@@ -226,4 +225,4 @@ const CC18CrossModelPerformanceTable: React.FC<CC18CrossModelPerformanceTablePro
   );
 };
 
-export default CC18CrossModelPerformanceTable;
+export default CrossModelPerformanceTable;
