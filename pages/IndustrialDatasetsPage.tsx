@@ -375,6 +375,17 @@ const IndustrialDatasetsPage: React.FC = () => {
                     This hierarchical structure allows for progressive evaluation of models, where categorization becomes more challenging at deeper levels due to the increasing number of categories and their semantic similarity.
                   </p>
                 </div>
+
+                <div className="mt-3 md:mt-4 py-4">
+                   <p className="text-md text-gray-600 mb-4">
+                    The evaluation results are generated using an optimized Workflow tailored to each specific use case. Below is an example illustrating the Workflow process for XGBoost — the same logic applies to all other models assessed. For a deeper understanding, you can explore our <a href="https://github.com/Neuralk-AI/TabBench/tree/main/tutorials" className="text-[#127064] font-semibold">Notebooks</a> to see the Workflows in action.
+                  </p>
+                  <img 
+                    src="https://raw.githubusercontent.com/Neuralk-AI/TabBench/refs/heads/dashboard/workflow.png" 
+                    alt="Example Workflow for XGBoost Evaluation" 
+                    className="w-full max-w-3xl mx-auto rounded-lg shadow-md border border-gray-300" 
+                  />
+                </div>
                 
                 {productCatSummaryStats && (
                   <div aria-labelledby="summary-stats-subheading" className="mt-6 md:mt-8">
