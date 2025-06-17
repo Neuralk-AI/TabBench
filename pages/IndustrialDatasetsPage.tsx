@@ -118,14 +118,13 @@ const IndustrialDatasetsPage: React.FC = () => {
     return datasetResults.map(result => {
       const model = MODELS.find(m => m.id === result.modelId);
       const metric = result.metrics.find(m => m.name === metricName);
-      const stdDev = result.metrics.find(m => m.name === metricName)?.stdDev; // Get stdDev if available
       
       const chartItem: ChartDataItem = {
         modelName: model ? model.name : 'Unknown Model',
-        [metricName]: metric ? metric.value : 0,
+        [metricName]: metric && typeof metric.value === 'number' ? metric.value : NaN, // Use NaN for missing/invalid
       };
-      if (typeof stdDev === 'number' && stdDev > 0) {
-        chartItem[`${metricName}_stdDev`] = stdDev;
+      if (metric && typeof metric.stdDev === 'number' && metric.stdDev > 0 && !isNaN(metric.value)) {
+        chartItem[`${metricName}_stdDev`] = metric.stdDev;
       }
       return chartItem;
 
@@ -136,8 +135,8 @@ const IndustrialDatasetsPage: React.FC = () => {
         const valA = a[metricName] as number;
         const valB = b[metricName] as number;
 
-        if (typeof valA !== 'number' || isNaN(valA)) return 1; // Push N/A to end
-        if (typeof valB !== 'number' || isNaN(valB)) return -1; // Push N/A to end
+        if (isNaN(valA)) return 1; // Push NaN to end
+        if (isNaN(valB)) return -1; // Push NaN to end
 
         const lowerIsBetterMetrics = ['rmse', 'inference latency (ms)', 'training time (s)'];
         if (lowerIsBetterMetrics.includes(metricName.toLowerCase())) {
@@ -147,14 +146,14 @@ const IndustrialDatasetsPage: React.FC = () => {
     });
   };
 
-  const productCatSelectableMetrics = ['Accuracy', 'F1 Score', 'AUC']; // Precision removed
-  const avgProductCatSelectableMetrics = ['Accuracy', 'F1 Score', 'AUC']; // Precision removed
+  const productCatSelectableMetrics = ['Accuracy', 'F1 Score', 'AUC'];
+  const avgProductCatSelectableMetrics = ['Accuracy', 'F1 Score', 'AUC'];
 
   const productCatModelStats = useMemo(() => {
     if (useCaseSlug !== 'product-categorization' || productCategorizationDatasets.length === 0) {
         return null;
     }
-    const metricsToAggregate = ['Accuracy', 'F1 Score', 'AUC']; // Precision removed
+    const metricsToAggregate = ['Accuracy', 'F1 Score', 'AUC'];
     const modelAggregates: { [modelId: string]: { [metricName: string]: { sum: number, count: number, sumOfSquares: number } } } = {};
 
     MODELS.forEach(model => {
@@ -187,22 +186,20 @@ const IndustrialDatasetsPage: React.FC = () => {
       return MODELS.map(model => {
           const modelStats = productCatModelStats[model.id];
           const metricStats = modelStats?.[selectedAvgProductCatMetric];
-          let avgValue = 0;
-          let stdDevValue = 0;
+          let avgValue: number = NaN; // Default to NaN
+          let stdDevValue: number = NaN; // Default to NaN
 
           if (metricStats && metricStats.count > 0) {
               avgValue = parseFloat((metricStats.sum / metricStats.count).toFixed(4));
-              if (metricStats.count > 0) { 
-                  const mean = metricStats.sum / metricStats.count;
-                  const variance = (metricStats.sumOfSquares / metricStats.count) - (mean * mean);
-                  stdDevValue = variance > 0 ? parseFloat(Math.sqrt(variance).toFixed(4)) : 0;
-              }
+              const mean = metricStats.sum / metricStats.count;
+              const variance = (metricStats.sumOfSquares / metricStats.count) - (mean * mean);
+              stdDevValue = variance > 0 ? parseFloat(Math.sqrt(variance).toFixed(4)) : 0; // stdDev can be 0
           }
           const chartDataItem: ChartDataItem = {
               modelName: model.name,
-              [selectedAvgProductCatMetric]: metricStats && metricStats.count > 0 ? avgValue : 0,
+              [selectedAvgProductCatMetric]: avgValue,
           };
-          if (stdDevValue > 0) {
+          if (!isNaN(stdDevValue) && stdDevValue > 0) { // Only add stdDev if it's a valid positive number
               chartDataItem[`${selectedAvgProductCatMetric}_stdDev`] = stdDevValue;
           }
           return chartDataItem;
@@ -213,8 +210,8 @@ const IndustrialDatasetsPage: React.FC = () => {
           const valA = a[selectedAvgProductCatMetric] as number;
           const valB = b[selectedAvgProductCatMetric] as number;
 
-          if (typeof valA !== 'number' || isNaN(valA)) return 1;
-          if (typeof valB !== 'number' || isNaN(valB)) return -1;
+          if (isNaN(valA)) return 1;
+          if (isNaN(valB)) return -1;
           
           const lowerIsBetterMetrics = ['rmse', 'inference latency (ms)', 'training time (s)'];
           if (lowerIsBetterMetrics.includes(selectedAvgProductCatMetric.toLowerCase())) {
@@ -226,7 +223,7 @@ const IndustrialDatasetsPage: React.FC = () => {
 
   const averagePerformanceTableResults = useMemo((): PerformanceResult[] => {
       if (!productCatModelStats) return [];
-      const metricsForTable = ['Accuracy', 'F1 Score', 'AUC']; // Precision removed
+      const metricsForTable = ['Accuracy', 'F1 Score', 'AUC'];
       return MODELS.map(model => {
           const avgMetrics: Metric[] = [];
           const modelAggData = productCatModelStats[model.id];
@@ -236,8 +233,9 @@ const IndustrialDatasetsPage: React.FC = () => {
                   avgMetrics.push({ 
                       name: metricName, 
                       value: parseFloat((metricData.sum / metricData.count).toFixed(4)) 
-                      // StdDev for average table could be added here if needed
                   });
+              } else {
+                  avgMetrics.push({ name: metricName, value: NaN }); // Push NaN if no data
               }
           });
           return {
@@ -245,7 +243,7 @@ const IndustrialDatasetsPage: React.FC = () => {
               modelId: model.id,
               metrics: avgMetrics,
           };
-      }).filter(r => r.metrics.length > 0); 
+      }); 
   }, [productCatModelStats, MODELS]);
   
   const productCategorizationDatasetIds = useMemo(() => {
@@ -410,7 +408,7 @@ const IndustrialDatasetsPage: React.FC = () => {
                     </h2>
                      <p className="text-sm text-gray-500 mb-4 md:mb-6">(across all datasets)</p>
                     
-                    {averagePerformanceChartData.length > 0 ? (
+                    {averagePerformanceChartData.some(item => !isNaN(item[selectedAvgProductCatMetric] as number)) ? (
                         <PerformanceChart
                             data={averagePerformanceChartData}
                             metricName={selectedAvgProductCatMetric}
@@ -469,7 +467,6 @@ const IndustrialDatasetsPage: React.FC = () => {
                         
                         {(() => {
                             let datasetResults = RESULTS.filter(r => r.datasetId === currentProductCatDataset.id);
-                            // Filter out Precision for product categorization tables
                             if (currentProductCatDataset.useCaseSlug === 'product-categorization') {
                                 datasetResults = datasetResults.map(res => ({
                                     ...res,
@@ -480,7 +477,7 @@ const IndustrialDatasetsPage: React.FC = () => {
                             const chartData = getChartData(currentProductCatDataset.id, selectedProductCatMetric);
                             let chartToDisplay = null;
 
-                            if (chartData.length > 0) {
+                            if (chartData.some(item => !isNaN(item[selectedProductCatMetric] as number))) { // Check if there's any valid data
                                 chartToDisplay = (
                                   <PerformanceChart
                                     data={chartData}
@@ -493,11 +490,10 @@ const IndustrialDatasetsPage: React.FC = () => {
                                 chartToDisplay = <div className="mb-4 md:mb-6">{individualDatasetMetricSelectorControls(currentProductCatDataset.id)}</div>;
                             }
 
-
                             return (
                                 <>
                                 {chartToDisplay}
-                                {datasetResults.length > 0 ? (
+                                {datasetResults.length > 0 && datasetResults.some(r => r.metrics.some(m => !isNaN(m.value))) ? (
                                   <PerformanceTable 
                                     results={datasetResults} 
                                     title={`Detailed Metrics: ${currentProductCatDataset.name}`}
@@ -521,7 +517,6 @@ const IndustrialDatasetsPage: React.FC = () => {
                 )}
               </section>
               
-              {/* New Overview Table Section */}
               {productCategorizationDatasetIds.length > 0 && (
                 <section className="mt-10 md:mt-12">
                     <CC18CrossModelPerformanceTable 
@@ -541,7 +536,6 @@ const IndustrialDatasetsPage: React.FC = () => {
         </>
       )}
 
-      {/* Fallback for other potential industrial use cases (if any were added and not 'product-categorization' or 'deduplication') */}
       {useCaseSlug !== 'product-categorization' && useCaseSlug !== 'deduplication' && (
         <>
           {industrialDatasetsForPage.length === 0 && useCaseSlug && (
@@ -572,7 +566,7 @@ const IndustrialDatasetsPage: React.FC = () => {
             }
             
             const primaryChartData = primaryMetric !== 'N/A' ? getChartData(dataset.id, primaryMetric) : [];
-            if (primaryMetric !== 'N/A' && primaryChartData.length > 0) {
+            if (primaryMetric !== 'N/A' && primaryChartData.some(item => !isNaN(item[primaryMetric] as number))) {
               chartToDisplay = (
                 <PerformanceChart
                   data={primaryChartData}
@@ -587,7 +581,7 @@ const IndustrialDatasetsPage: React.FC = () => {
                 <h2 id={`dataset-heading-${dataset.id}`} className="sr-only">{dataset.name} Details and Performance</h2>
                 <DatasetCard dataset={dataset} />
                 {chartToDisplay}
-                {datasetResults.length > 0 ? (
+                {datasetResults.length > 0 && datasetResults.some(r => r.metrics.some(m => !isNaN(m.value)))? (
                   <PerformanceTable 
                     results={datasetResults} 
                     title={`Detailed Metrics: ${dataset.name}`}

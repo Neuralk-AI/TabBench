@@ -202,6 +202,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, closeSidebar }) => {
             <h3 className="px-4 mb-2 text-sm font-semibold text-slate-400 uppercase tracking-wider">Resources</h3> 
             <div className="space-y-1">
                 <NavLink to="https://example.com/tabbench-notebooks" icon={<NotebookIcon />} onClick={closeSidebar} isExternal={true}>Notebooks</NavLink>
+                <NavLink to="https://example.com/tabbench" icon={<SettingsIcon />} onClick={closeSidebar} isExternal={true}>TabBench</NavLink>
                 <NavLink to="https://example.com/neuralk-foundry" icon={<SettingsIcon />} onClick={closeSidebar} isExternal={true}>Neuralk Foundry</NavLink>
                 <NavLink to="/contribute" icon={<ContributeIcon />} onClick={closeSidebar}>Contribute</NavLink>
                 <NavLink to="https://www.neuralk-ai.com" icon={<AboutIcon />} onClick={closeSidebar} isExternal={true}>About us</NavLink>

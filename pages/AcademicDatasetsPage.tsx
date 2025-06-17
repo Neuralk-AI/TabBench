@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Dataset, DatasetType, ChartDataItem, Metric, PerformanceResult } from '../types';
-import { DATASETS, MODELS, RESULTS, newAcademicDatasets } from '../constants'; // Import newAcademicDatasets for IDs
+import { DATASETS, MODELS, RESULTS, newAcademicDatasets, ACADEMIC_DATASET_RAW_NAMES } from '../constants';
 import DatasetCard from '../components/DatasetCard';
 import PerformanceChart from '../components/PerformanceChart';
 import PerformanceTable from '../components/PerformanceTable';
@@ -9,27 +9,31 @@ import DatasetDistributionChart from '../components/DatasetDistributionChart';
 import CC18CrossModelPerformanceTable from '../components/CC18CrossModelPerformanceTable';
 
 const AcademicDatasetsPage: React.FC = () => {
-  const [selectedAvgAcademicMetric, setSelectedAvgAcademicMetric] = useState<string>('Accuracy'); // Updated default
+  const [selectedAvgAcademicMetric, setSelectedAvgAcademicMetric] = useState<string>('Accuracy');
   const [currentAcademicDataset, setCurrentAcademicDataset] = useState<Dataset | null>(null);
-  const [selectedIndividualAcademicMetric, setSelectedIndividualAcademicMetric] = useState<string>('Accuracy'); // Updated default
+  const [selectedIndividualAcademicMetric, setSelectedIndividualAcademicMetric] = useState<string>('Accuracy');
 
-  // Use IDs from the generated newAcademicDatasets
-  const individualAcademicDatasetIds = useMemo(() => newAcademicDatasets.map(ds => ds.id), []);
-  
+  // Filter academic datasets based on the new ACADEMIC_DATASET_RAW_NAMES
   const academicDatasetsForExplorer = useMemo(() => {
-    return DATASETS.filter(ds => individualAcademicDatasetIds.includes(ds.id) && ds.type === DatasetType.ACADEMIC)
-                   .sort((a, b) => a.name.localeCompare(b.name)); // Sort for dropdown
-  }, [DATASETS, individualAcademicDatasetIds]);
+    const allowedNamesLower = ACADEMIC_DATASET_RAW_NAMES.map(name => name.toLowerCase());
+    return newAcademicDatasets
+      .filter(ds => allowedNamesLower.includes(ds.name.toLowerCase().replace(/ /g, '_')) || allowedNamesLower.includes(ds.name.toLowerCase().replace(/ /g, '-')))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [newAcademicDatasets, ACADEMIC_DATASET_RAW_NAMES]);
+  
+  const individualAcademicDatasetIds = useMemo(() => academicDatasetsForExplorer.map(ds => ds.id), [academicDatasetsForExplorer]);
+
 
   const academicSummaryStats = useMemo(() => {
     const avgDataset = DATASETS.find(ds => ds.id === 'academic-openml-avg');
+    const relevantAcademicDatasets = academicDatasetsForExplorer; // Use the filtered list
 
-    const rowsArray = academicDatasetsForExplorer.map(ds => ds.rows); // rows are always number
-    const numericFeaturesArray = academicDatasetsForExplorer
+    const rowsArray = relevantAcademicDatasets.map(ds => ds.rows);
+    const numericFeaturesArray = relevantAcademicDatasets
         .map(ds => ds.features)
         .filter(f => typeof f === 'number') as number[];
 
-    if (academicDatasetsForExplorer.length === 0) {
+    if (relevantAcademicDatasets.length === 0) {
         return null;
     }
 
@@ -38,7 +42,6 @@ const AcademicDatasetsPage: React.FC = () => {
     const minF = numericFeaturesArray.length > 0 ? Math.min(...numericFeaturesArray) : 'N/A';
     const maxF = numericFeaturesArray.length > 0 ? Math.max(...numericFeaturesArray) : 'N/A';
 
-    // Use avgDataset if available and its properties are numbers, otherwise calculate from individuals
     const avgRowsDisplay = (avgDataset && typeof avgDataset.rows === 'number')
         ? avgDataset.rows.toLocaleString()
         : (rowsArray.length > 0 ? (rowsArray.reduce((sum, r) => sum + r, 0) / rowsArray.length).toFixed(0) : 'N/A');
@@ -48,7 +51,7 @@ const AcademicDatasetsPage: React.FC = () => {
         : (numericFeaturesArray.length > 0 ? (numericFeaturesArray.reduce((sum, f) => sum + f, 0) / numericFeaturesArray.length).toFixed(0) : 'N/A');
 
     return {
-        count: academicDatasetsForExplorer.length,
+        count: relevantAcademicDatasets.length,
         avgRows: avgRowsDisplay,
         minRows: minR,
         maxRows: maxR,
@@ -67,7 +70,7 @@ const AcademicDatasetsPage: React.FC = () => {
     const counts = Array(bins.length -1).fill(0);
     datasets.forEach(ds => {
       const rawValue = ds[prop];
-      if (typeof rawValue === 'number') { // Ensure value is a number before comparison
+      if (typeof rawValue === 'number') {
         const value = rawValue;
         for (let i = 0; i < bins.length - 1; i++) {
           if (value >= bins[i] && value < bins[i+1]) {
@@ -80,25 +83,25 @@ const AcademicDatasetsPage: React.FC = () => {
     return bins.slice(0, -1).map((binStart, i) => {
       const binEnd = bins[i+1];
       let name = `${binStart.toLocaleString()}-`;
-      name += binEnd === Infinity ? '\u221E' : (binEnd -1).toLocaleString(); // Adjust bin end display
+      name += binEnd === Infinity ? '\u221E' : (binEnd -1).toLocaleString();
       return { name, count: counts[i]};
     });
   };
 
   const rowsDistributionDataAcademic = useMemo(() => {
     if (datasetsForDistribution.length === 0) return [];
-    const bins = [0, 1000, 2000, 3000, 5000, 7500, 10001]; 
+    const bins = [0, 1000, 2000, 3000, 5000, 7500, 10001, Infinity]; 
     return getDistributionData(datasetsForDistribution, 'rows', bins);
   }, [datasetsForDistribution]);
 
   const featuresDistributionDataAcademic = useMemo(() => {
      if (datasetsForDistribution.length === 0) return [];
-    const bins = [0, 10, 20, 40, 60, 101]; 
+    const bins = [0, 10, 20, 40, 60, 100, Infinity]; 
     return getDistributionData(datasetsForDistribution, 'features', bins);
   }, [datasetsForDistribution]);
 
   const pageTitle = "Academic task: Classification 🎓";
-  const pageDescription = `Performance evaluation on ${academicDatasetsForExplorer.length} OpenML classification tasks and their averages.`;
+  const pageDescription = `Performance evaluation on ${academicDatasetsForExplorer.length} specified OpenML classification tasks and their averages.`;
   
   const getChartData = (datasetId: string, metricName: string): ChartDataItem[] => {
     const datasetResults = RESULTS.filter(r => r.datasetId === datasetId);
@@ -108,10 +111,10 @@ const AcademicDatasetsPage: React.FC = () => {
       
       const chartItem: ChartDataItem = {
         modelName: model ? model.name : 'Unknown Model',
-        [metricName]: metric ? metric.value : 0,
+        [metricName]: metric && typeof metric.value === 'number' ? metric.value : NaN, // Use NaN for missing/invalid
       };
 
-      if (metric && metric.stdDev !== undefined && metric.stdDev > 0) {
+      if (metric && metric.stdDev !== undefined && metric.stdDev > 0 && !isNaN(metric.value)) {
         chartItem[`${metricName}_stdDev`] = metric.stdDev;
       }
       return chartItem;
@@ -123,8 +126,8 @@ const AcademicDatasetsPage: React.FC = () => {
         const valA = a[metricName] as number;
         const valB = b[metricName] as number;
 
-        if (typeof valA !== 'number' || isNaN(valA)) return 1;
-        if (typeof valB !== 'number' || isNaN(valB)) return -1;
+        if (isNaN(valA)) return 1; // Push NaN to end
+        if (isNaN(valB)) return -1; // Push NaN to end
         
         const lowerIsBetterMetrics = ['rmse', 'inference latency (ms)', 'training time (s)'];
         if (lowerIsBetterMetrics.includes(metricName.toLowerCase())) {
@@ -149,8 +152,8 @@ const AcademicDatasetsPage: React.FC = () => {
         const valA = a[selectedAvgAcademicMetric] as number;
         const valB = b[selectedAvgAcademicMetric] as number;
 
-        if (typeof valA !== 'number' || isNaN(valA)) return 1;
-        if (typeof valB !== 'number' || isNaN(valB)) return -1;
+        if (isNaN(valA)) return 1;
+        if (isNaN(valB)) return -1;
 
         const lowerIsBetterMetrics = ['rmse', 'inference latency (ms)', 'training time (s)'];
         if (lowerIsBetterMetrics.includes(selectedAvgAcademicMetric.toLowerCase())) {
@@ -242,7 +245,7 @@ const AcademicDatasetsPage: React.FC = () => {
               Academic Datasets Explorer
             </h2>
             <p className="text-md text-gray-600 mb-4 md:mb-6">
-              This section explores {academicDatasetsForExplorer.length} OpenML datasets used for academic benchmarking. These datasets are standard in ML research and provide a basis for comparing model performance on well-understood classification tasks. 
+              This section explores {academicDatasetsForExplorer.length} specified OpenML datasets used for academic benchmarking. These datasets are standard in ML research and provide a basis for comparing model performance on well-understood classification tasks. 
             </p>
             
             {academicSummaryStats && (
@@ -276,11 +279,12 @@ const AcademicDatasetsPage: React.FC = () => {
                 </div>
               </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-6"> {/* Added mt-4 here */}
-              <DatasetDistributionChart data={rowsDistributionDataAcademic} title="Distribution by Rows" barColor="#14b8a6" />
-              <DatasetDistributionChart data={featuresDistributionDataAcademic} title="Distribution by Features" barColor="#0d9488" />
-            </div>
-            
+            {datasetsForDistribution.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-6">
+                <DatasetDistributionChart data={rowsDistributionDataAcademic} title="Distribution by Rows" barColor="#14b8a6" />
+                <DatasetDistributionChart data={featuresDistributionDataAcademic} title="Distribution by Features" barColor="#0d9488" />
+                </div>
+            )}
           </section>
 
           {averageAcademicResultsForTable.length > 0 && (
@@ -291,7 +295,7 @@ const AcademicDatasetsPage: React.FC = () => {
                 <h2 id="average-academic-performance-heading" className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-700 mb-0">
                     Average Model Performance
                 </h2>
-                 <p className="text-xs text-gray-500 mb-4 md:mb-6">(Average performance across all datasets)</p>
+                 <p className="text-xs text-gray-500 mb-4 md:mb-6">(Average performance across specified datasets)</p>
                 
                 {averageAcademicChartData.length > 0 ? (
                     <PerformanceChart
@@ -355,24 +359,25 @@ const AcademicDatasetsPage: React.FC = () => {
                         const chartData = getChartData(currentAcademicDataset.id, selectedIndividualAcademicMetric);
                         let chartToDisplay = null;
                         
-                        if (chartData.length > 0) {
+                        if (chartData.some(item => !isNaN(item[selectedIndividualAcademicMetric] as number))) { // Check if there's any valid data
                             chartToDisplay = (
                               <PerformanceChart
                                 data={chartData} 
                                 metricName={selectedIndividualAcademicMetric}
                                 title={`Performance on ${currentAcademicDataset.name}`}
                                 headerControls={individualAcademicDatasetMetricSelectorControls(currentAcademicDataset.id)}
-                                yAxisTickInterval={0.1} 
+                                yAxisTickInterval={0.05}
+                                yAxisMinPointBuffer={0.10}
                               />
                           );
-                        } else if (datasetResults.length > 0) { 
+                        } else if (datasetResults.length > 0) { // Controls even if no chart data, but results exist
                             chartToDisplay = <div className="mb-4 md:mb-6">{individualAcademicDatasetMetricSelectorControls(currentAcademicDataset.id)}</div>;
                         }
 
                         return (
                             <>
                             {chartToDisplay}
-                            {datasetResults.length > 0 ? (
+                            {datasetResults.length > 0 && datasetResults.some(r => r.metrics.some(m => !isNaN(m.value))) ? (
                               <PerformanceTable 
                                 results={datasetResults} 
                                 title={`Detailed Metrics: ${currentAcademicDataset.name}`}
@@ -396,17 +401,19 @@ const AcademicDatasetsPage: React.FC = () => {
             )}
           </section>
 
-          <section className="mt-10 md:mt-12">
-             <CC18CrossModelPerformanceTable 
-                datasetIds={individualAcademicDatasetIds}
-                title="Overview of performance on individual datasets"
-             />
-         </section>
+          {individualAcademicDatasetIds.length > 0 && (
+            <section className="mt-10 md:mt-12">
+                <CC18CrossModelPerformanceTable 
+                    datasetIds={individualAcademicDatasetIds}
+                    title="Overview of performance on individual datasets"
+                />
+            </section>
+          )}
         </>
       ) : (
         <div className="text-center py-8 md:py-10">
             <p className="text-lg sm:text-xl text-gray-500">
-                No academic datasets available for display.
+                No academic datasets available for display based on the current filter.
             </p>
         </div>
       )}
