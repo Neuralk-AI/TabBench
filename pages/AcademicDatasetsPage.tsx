@@ -48,7 +48,7 @@ const AcademicDatasetsPage: React.FC = () => {
 
     const avgFeaturesDisplay = (avgDataset && typeof avgDataset.features === 'number')
         ? avgDataset.features.toLocaleString()
-        : (numericFeaturesArray.length > 0 ? (numericFeaturesArray.reduce((sum, f) => sum + f, 0) / numericFeaturesArray.length).toFixed(0) : 'N/A');
+        : (numericFeaturesArray.length > 0 ? Math.floor(numericFeaturesArray.reduce((sum, f) => sum + (f as number), 0) / numericFeaturesArray.length).toLocaleString() : 'N/A');
 
     return {
         count: relevantAcademicDatasets.length,
