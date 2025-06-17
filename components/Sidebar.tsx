@@ -171,7 +171,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, closeSidebar }) => {
              onClick={closeSidebar}
            >
             <img 
-                src="https://cdn-images.welcometothejungle.com/v82GguLLmnQoPY4v0Gu9ZTGrzAwtFaKjAd0pF-mNsFw/resize:auto:400::/czM6Ly93dHRqLXByb2R1Y3Rpb24vYWNjb3VudHMvdXBsb2Fkcy9vcmdhbml6YXRpb25zL2xvZ29zL2E5MWQ5M2U5MWMyNDYyZjA0MzNjMTc0Zjc0YjNjMjMwLzU2NmZkOTBjLTY2M2ItNDJlZC04N2I4LTVmMGIwYTg1NGU0NS5wbmc" 
+                src="https://raw.githubusercontent.com/Neuralk-AI/TabBench/refs/heads/dashboard/neuralk-logo.webp" 
                 alt="TabBench Logo" 
                 className="h-16 w-auto object-contain" 
             />
