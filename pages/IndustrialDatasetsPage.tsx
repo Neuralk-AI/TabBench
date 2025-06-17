@@ -97,7 +97,7 @@ const IndustrialDatasetsPage: React.FC = () => {
 
   if (useCaseSlug === 'product-categorization') {
     pageTitle = 'Industrial use case: Product Categorization 🛍️';
-    pageDescription = "Product categorization is a key task in Commerce, involving the classification of products into structured categories using complex, high-dimensional tabular data. This section evaluates model performance on real industrial datasets, provided by partner companies and used in actual production environments for product categorization.";
+    pageDescription = "Product categorization is a key task in Commerce, involving the classification of products into structured categories using complex, high-dimensional tabular data. This section evaluates model performance on real industrial datasets that are used in production environments.";
   } else if (useCaseSlug === 'deduplication') {
     pageTitle = 'Industrial use case: Deduplication 🧹';
     pageDescription = `This section will evaluate models on an industry deduplication task where a model has to identify duplicate records in product listings or customer databases. Benchmarking data and insights are coming soon.`;
@@ -360,7 +360,7 @@ const IndustrialDatasetsPage: React.FC = () => {
                     This section explores industry datasets derived from a large, industry-grade retail database with a hierarchical product ontology. The full product categorization spans four levels of depth, reflecting increasingly fine-grained classification. For example, a product like a jigsaw might be categorized as:
                   </p>
                   <p className="pl-4">
-                    <em>. → Tools/Equipment → Tools/Equipment → Saws → Jigsaws (Powered).</em>
+                    <em>Tools/Equipment → Tools/Equipment → Saws → Jigsaw</em>
                   </p>
                   <p>
                     To manage memory constraints and enable focused analysis, the original database was split into four separate datasets, each corresponding to a different complexity level (Levels 1–4). These levels represent increasing granularity in the product taxonomy:
