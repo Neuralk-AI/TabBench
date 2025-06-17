@@ -12,7 +12,7 @@ const NotFoundPage: React.FC = () => {
       <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#1b998b] mb-3 md:mb-4">404</h1>
       <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-700 mb-3 md:mb-4">Page Not Found</h2>
       <p className="text-gray-500 mb-6 md:mb-8 text-sm sm:text-base max-w-md">
-        Oops! The page you're looking for doesn't seem to exist. Maybe it was moved, or you mistyped the URL.
+        Oops! The page you're looking for doesn't seem to exist... Maybe it was moved, or you mistyped the URL.
       </p>
       <Link
         to="/"
