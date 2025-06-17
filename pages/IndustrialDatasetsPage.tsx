@@ -375,7 +375,7 @@ const IndustrialDatasetsPage: React.FC = () => {
                     This hierarchical structure allows for progressive evaluation of models, where categorization becomes more challenging at deeper levels due to the increasing number of categories and their semantic similarity.
                   </p>
                    <p className="mb-8 md:mb-10 lg:mb-12">
-                     Each dataset contains a title and description column. These fields are embedded independently using the <a href="https://huggingface.co/intfloat/multilingual-e5-base" className="text-[#127064] font-semibold">intfloat/multilingual-e5-base</a> model, producing two vectors of 768 dimensions. To reduce dimensionality and create a compact input for tabular models, PCA (n_components=50) is applied separately to each embedding. The final representation consists of 100 numerical features per sample.
+                     Each dataset contains a title and description column. These fields are embedded independently using the <a href="https://huggingface.co/intfloat/multilingual-e5-base" className="text-[#127064] font-semibold">intfloat/multilingual-e5-base</a> model, producing two vectors of 768 dimensions. To reduce dimensionality and create a compact input for tabular models, PCA is applied independently for each feature. The final representation consists of 100 numerical features per sample.
                   </p>
                 </div>
 
