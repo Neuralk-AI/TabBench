@@ -13,9 +13,10 @@ const HomePage: React.FC = () => {
   // ];
 
   const dashboardFeatures = [
-    "Explore Datasets & Tasks: Access information and statistics for industrial datasets tied to industry use cases like Product Categorization and Deduplication, as well as academic datasets covering general tasks like classification.",
-    "Visualize Performance: Interactively explore model results with dynamic plots and sortable tables across key performance metrics like Accuracy, F1-score and ROC-AUC.",
-    "Compare Models: For each dataset and use case, quickly compare models side by side to understand their strengths across different scenarios.",
+    "Explore datasets & tasks: Access information and statistics for industrial datasets tied to industry use cases like Product Categorization and Deduplication, as well as academic datasets covering general tasks like classification.",
+    "Visualize performance: Interactively explore model results with dynamic plots and sortable tables across key performance metrics like Accuracy, F1-score and ROC-AUC.",
+    "Compare models: For each dataset and use case, quickly compare models side by side to understand their strengths across different scenarios.",
+    "Advanced resources to explore TabBench code and notebooks: Get hands-on with detailed example notebooks and open-source code to run TabBench yourself, including full access to both the TabBench benchmark and the Neuralk Foundry framework (available via the menu)",
   ];
 
 
@@ -71,13 +72,13 @@ const HomePage: React.FC = () => {
           </h2>
           <div className="space-y-4 text-gray-700 leading-normal sm:leading-snug text-sm sm:text-base"> {/* Enhanced line height */}
             <p>
-            The TabBench Dashboard offers the first performance results of NICL (Neuralk In-Context-Learning), a novel Tabular Foundation Model developed by Neuralk-AI, delivering state-of-the-art performance on industrial use cases. Navigate through the dashboard to start exploring the results.            </p>
+            The TabBench Dashboard presents the first performance results of NICL (Neuralk In-Context-Learning), a novel Tabular Foundation Model developed by Neuralk-AI, delivering state-of-the-art performance on industrial use cases. Navigate through the dashboard to start exploring the results.            </p>
           </div>
         </section>
 
         <section className="mt-8 md:mt-10"> {/* Spacing within the group */}
           <h2 className="text-2xl sm:text-2xl font-semibold text-gray-800 mb-3 md:mb-4 text-center md:text-left">
-            👉 Dashboard Features
+            👉 Overview of Dashboard Features
           </h2>
           <p className="text-gray-700 leading-normal sm:leading-snug text-sm sm:text-base mb-4 md:mb-5">
           The TabBench Dashboard makes it easy to explore how ML models perform across different tabular datasets and use cases. Here’s what you can do:
