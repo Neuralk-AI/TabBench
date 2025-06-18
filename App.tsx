@@ -11,6 +11,7 @@ import DiscussionsPage from './pages/DiscussionsPage';
 import EventsPage from './pages/EventsPage';
 import AboutUsPage from './pages/AboutUsPage';
 import TermsAndCitationPage from './pages/TermsAndCitationPage';
+import NeuralkLicensePage from './pages/NeuralkLicensePage'; 
 
 const App: React.FC = () => {
   return (
@@ -25,6 +26,7 @@ const App: React.FC = () => {
         <Route path="/events" element={<EventsPage />} />
         <Route path="/about-us" element={<AboutUsPage />} />
         <Route path="/terms-citation" element={<TermsAndCitationPage />} />
+        <Route path="/neuralk-license" element={<NeuralkLicensePage />} /> 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Layout>
