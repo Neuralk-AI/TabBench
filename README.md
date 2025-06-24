@@ -77,8 +77,8 @@ To get quickly started with a TabBench Workflow, you can jump straight into our 
 ----------|---------------------------------------------------------|
 | [1 - Getting Started with TabBench](tutorials/1%20-%20Getting%20Started%20with%20TabBench.ipynb)    | Discover how TabBench works and train your first tabular model on a Product Categorization task.
 | [2 - Adding a local or internet dataset](tutorials/2%20-%20Adding%20a%20local%20or%20internet%20dataset.ipynb) | How to add your own datasets for evaluation (local, downloadable, or OpenML).
-| [3 - Use a custom model.ipynb.ipynb](tutorials/3%20-%20Use%20a%20custom%20model.ipynb) |  How to integrate a new model in TabBench and use it on different use cases.
-| [4 - Tackle the categorisation challenge.ipynb](tutorials/Tackle%20the%20categorisation%20challenge.ipynb) |  A pipeline similar to our private task for you to train your model before submitting it.
+| [3 - Use a custom model](tutorials/3%20-%20Use%20a%20custom%20model.ipynb) |  How to integrate a new model in TabBench and use it on different use cases.
+| [4 - Tackle the categorisation challenge](tutorials/Tackle%20the%20categorisation%20challenge.ipynb) |  A pipeline similar to our private task for you to train your model before submitting it.
 
 ## 🛍️ Use cases
 
