@@ -3,6 +3,9 @@ import json
 import shutil
 import os
 
+import tabbench
+import tabbench.datasets
+import tabbench.datasets.openml
 from neuralk_foundry_ce.workflow.utils import make_json_serializable
 from neuralk_foundry_ce.models.classifier import (
     LightGBMClassifier, XGBoostClassifier, CatBoostClassifier,
@@ -31,12 +34,12 @@ if __name__ == '__main__':
         ('tabicl', TabICLClassifier, 'none', 'none'),
         ('tabpfn', TabPFNClassifier, 'none', 'none'),
     ]
-    script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
+    script_dir = Path(__file__).resolve().parent
 
     for model_name, model_class, categorical_encoding, numerical_encoding in models:
         print('Model:', model_name)
 
-        model_cache = script_dir / f'cache_{dataset}'
+        model_cache = script_dir / f'cache_{model_name}'
         if not model_cache.exists():
             # Copy the cache reference for the new model
             shutil.copytree(script_dir / 'cache', model_cache)
