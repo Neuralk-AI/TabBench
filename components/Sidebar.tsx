@@ -166,7 +166,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, closeSidebar }) => {
         {/* Logo and Title */}
         <div className="px-4 py-6 border-b border-slate-200"> 
            <Link 
-             to="/" 
+             to="https://neuralk-ai.com/" 
              className="flex flex-col items-center space-y-2" 
              onClick={closeSidebar}
            >
