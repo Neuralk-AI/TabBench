@@ -6,7 +6,7 @@ import os
 import tabbench
 import tabbench.datasets
 import tabbench.datasets.openml
-from neuralk_foundry_ce.workflow.utils import make_json_serializable
+from neuralk_foundry_ce.utils.data import make_json_serializable
 from neuralk_foundry_ce.models.classifier import (
     LightGBMClassifier, XGBoostClassifier, CatBoostClassifier,
     MLPClassifier,
@@ -39,10 +39,7 @@ if __name__ == '__main__':
     for model_name, model_class, categorical_encoding, numerical_encoding in models:
         print('Model:', model_name)
 
-        model_cache = script_dir / f'cache_{model_name}'
-        if not model_cache.exists():
-            # Copy the cache reference for the new model
-            shutil.copytree(script_dir / 'cache', model_cache)
+        model_cache = script_dir / f'cache'
 
         for dataset in datasets:
             dataset = f'openml-{dataset}'
