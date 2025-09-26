@@ -5,8 +5,8 @@ from neuralk_foundry_ce.datasets.base import OpenMLDataConfig
 
 @dataclass
 class DataConfig(OpenMLDataConfig):
-    name: str  = "openml-40691"
+    name: str  = "openml-46356"
     task: str  = "classification"
-    target: str = "Class"
-    openml_id: int = 40498
-    openml_name = "wine-quality-white"
+    target: str = "target"
+    openml_id: int = 46356
+    openml_name = "GermanCreditData"
