@@ -76,7 +76,7 @@ if __name__ == '__main__':
                     workflow.set_classifier(model_class())
                     data, metrics = workflow.run(fold_index=fold_index)
                     print(metrics[model_class.name]['test_roc_auc'])
-                    with open(fold_cache / 'results.json', 'w') as f:
+                    with open(fold_cache / f'results_{model_name}.json', 'w') as f:
                         json.dump(make_json_serializable(metrics), f)
             except Exception as e:
                 print('FAILED')
