@@ -14,7 +14,7 @@
 
 </div>
 
-<h3 align="center">A Tabular Machine Learning Benchmark for Industrial Tasks </h3>
+<h3 align="center">An open evaluation suite for tabular classification</h3>
 
 <p align="center">
   <a href="https://dashboard.neuralk-ai.com"><strong>[Dashboard]</strong></a> •
@@ -30,28 +30,19 @@
 </div>
 
 
-##  👋 Welcome to TabBench 
+## 👋 Welcome to TabBench
 
-**TabBench** is a new benchmark built to evaluate machine learning models on **tabular data**, focusing on real-world industry use cases.
+**TabBench** is an open evaluation suite for tabular classification. It features **188 OpenML classification datasets** spanning healthcare, finance & insurance, industry & science, retail and behavioral data, computer vision, games & synthetic data, social and public-sector data, and other domains. Every dataset is filtered to be IID across rows.
 
-TabBench addresses a critical gap: traditional benchmarks tend to rely on public, academic datasets that are clean and carefully curated. While useful for research, they fail to reflect the imperfect nature of private enterprise data. 
+It compares the entire current landscape of tabular models head-to-head: gradient-boosted trees, tuned deep tabular networks, and the new wave of pre-trained tabular **foundation models**.
 
-To bridge this gap, TabBench introduces a new evaluation framework focused on real industry use cases. It enables a meaningful comparison of models specifically designed to address concrete business problems across sectors, starting with the domain of **Commerce**.
+Browse the results, leaderboard and analyses on the **[TabBench dashboard](https://dashboard.neuralk-ai.com)**.
 
-Commerce organizations rely heavily on tabular data that is complex, messy and highly-dimensional: structured datasets like product catalogs, transaction histories, and customer records power core business operations and decisions. TabBench is specifically designed to assess ML models on critical industry tasks that we might encounter in the Commerce sector, such as product categorization, deduplication and more. Its goal is to equip data science teams with the tools they need to identify and develop the most effective and powerful ML models tailored to their unique use cases.
+### 👉 Benchmark features
 
-
-### 👉 Benchmark Features
-
-With **TabBench**, you get:
-- **Industry-focused use cases with standardized workflows:** Target critical production problems through streamlined workflows featuring consistent preprocessing, training, and evaluation steps allowing reproducible and fair comparison of all models.
-- **Evaluation on Industrial & Academic datasets:**
-    - Assess models on proprietary industry datasets.*
-    - Complementary evaluation on selected academic datasets for comprehensive comparison.
-- **Performance tracking:** Easily identify top-performing tabular models via the TabBench [Dashboard](https://www.dashboard.neuralk-ai.com).
-- **Neuralk Foundry:** TabBench is built on top of Neuralk Foundry, a modular framework designed to help you quickly build and experiment with your own workflows.[Explore here](https://github.com/Neuralk-AI/NeuralkFoundry-CE/)
-
-**If you wish to become a partner company, please see the [Contact section](#Contact).*   
+- **Reproducible, standardized workflows** — consistent preprocessing, training and evaluation steps for fair model comparison.
+- **Broad model coverage** — tree ensembles (XGBoost, CatBoost, LightGBM), tuned neural networks (RealMLP, TabM, ModernNCA) and tabular foundation models (TabPFN, TabPFN v3, TabICL, TabICL v2, TabDPT, Mitra, LimiX, Seldon).
+- **Built on Neuralk Foundry** — the modular framework that powers each workflow. [Explore here](https://github.com/Neuralk-AI/NeuralkFoundry-CE/).
 
 ---
 
@@ -66,10 +57,10 @@ With **TabBench**, you get:
 </div>
 
 The TabBench Workflow is divided into 4 main steps:
-1.  **Load:** Loads the data, defines the use case (e.g., Product Categorization), and splits the data accordingly.
-2.  **Vectorize:** Performs necessary preprocessing and converts data entries into vector embeddings.
-3.  **Predict:** Applies a model to the vectorized data. This step can involve training a new model or using a pre-trained one from a selection of choices. Post-processing may also occur depending on the selected model.
-4.  **Evaluate:** Assesses the accuracy and performance of the Predict step.
+1.  **Load:** Loads the dataset and splits it into train/test folds.
+2.  **Vectorize:** Performs the preprocessing required by the model family (ordinal encoding, scaling, learned embeddings, etc.).
+3.  **Predict:** Trains the model on the train fold (or runs the in-context-learning forward pass for foundation models) and produces predictions on the test fold.
+4.  **Evaluate:** Computes the suite of classification metrics (Accuracy, AUC, F1, Precision, Recall, Cross-entropy) on the test fold.
 
 To get quickly started with a TabBench Workflow, you can jump straight into our example notebooks:
 
@@ -80,20 +71,11 @@ To get quickly started with a TabBench Workflow, you can jump straight into our 
 | [3 - Use a custom model](tutorials/3%20-%20Use%20a%20custom%20model.ipynb) |  How to integrate a new model in TabBench and use it on different use cases.
 | [4 - Tackle the categorisation challenge](tutorials/Tackle%20the%20categorisation%20challenge.ipynb) |  A pipeline similar to our private task for you to train your model before submitting it.
 
-## 🛍️ Use cases
+## 🗂️ Datasets
 
-Driven by the above Workflow approach, TabBench is able to handle diverse industry use cases such as:
+The public benchmark base is a fixed list of **188 OpenML classification datasets**, defined in [`experiments/run_bench.py`](experiments/run_bench.py). It covers a wide range of sizes (~100 to ~100 000 rows), feature mixes (numeric, categorical, high-cardinality) and class counts (binary to multi-class).
 
-- *Product Categorization:* Accurately assigning categories to products coming from catalogs often filled with typos, missing fields, and inconsistent formats.
-- (*More use cases coming soon!*)
-  
-## 🗂️ Datasets 
-
-With TabBench you can benchmark traditional and state-of-the-art tabular models on:
-- Industrial Datasets: Proprietary industry datasets.
-- Academic Datasets: Starting with a selection of OpenML datasets, with more academic benchmarks coming soon for fair comparison.
-
-## 📈 Experimental Evaluation 
+## 📈 Experimental Evaluation
 
 <div align="center">
 
@@ -101,29 +83,23 @@ With TabBench you can benchmark traditional and state-of-the-art tabular models 
 
 </div>
 
-### 📊 Benchmark Models
+### 📊 Benchmark models
 
-TabBench currently supports the following models, with more additions planned:
+TabBench compares three families:
 
-1.  **NICL (Neuralk In-Context-Learning)**: Our in-house foundation model.
-2.  **[TabICL (Tabular In-Context Learning)](https://arxiv.org/abs/2502.05564)**: A transformer-based model that performs feature compression before doing in-context learning on tabular data by conditioning on labeled support examples to predict unseen queries without task-specific training.
-3.  **[TabPFNv2](https://www.nature.com/articles/s41586-024-08328-6)**: A Transformer-based model that performs in-context learning by approximating Bayesian inference for tabular classification on small datasets.
-4.  **XGBoost**: An optimized distributed gradient boosting library designed to be highly efficient, flexible, and portable.
-5.  **CatBoost**: A gradient boosting on decision trees library, particularly strong with categorical features.
-6.  **LightGBM**: A fast, efficient gradient boosting framework that builds decision trees using histogram-based learning for scalable, high-performance tabular modeling.
-7.  **MLP (Multi-Layer Perceptron)**: A feedforward neural network that models tabular data by learning non-linear interactions between numerical and embedded categorical features.
+- **Tree ensembles**: XGBoost, CatBoost, LightGBM.
+- **Tuned neural networks**: RealMLP, TabM, ModernNCA.
+- **Tabular foundation models**: TabPFN, [TabPFN v3](https://www.nature.com/articles/s41586-024-08328-6), TabICL, TabICL v2, TabDPT, Mitra, LimiX, Seldon.
 
-### Benchmarking Procedure
+### Benchmarking procedure
 
-TabBench currently focuses exclusively on classification and categorization tasks. Academic classification benchmarks are optimized for ROC-AUC, while categorization tasks prioritize the more practical F1-score.
+TabBench focuses on classification. Performance is evaluated with a 5-fold stratified shuffle split; tuned models use 100 Optuna trials on a held-out validation fold. Preprocessing follows each model's recommended practice:
 
-Preprocessing steps vary depending on the model type, following each model’s recommended practices:
+- **Foundation models** ship their own preprocessing pipelines, used as-is.
+- **Tree ensembles** receive ordinal-encoded categorical features and unchanged numerical features.
+- **Tuned neural networks** receive learned embeddings for categorical features and z-score normalized numerical features.
 
-* **TabPFN**, **TabICL**, and **NICL**: These models include their own preprocessing pipelines, which we use as-is.
-* **Tree-based models** (XGBoost, CatBoost, LightGBM): Since these models support native handling of categorical features, we apply ordinal encoding to categorical columns and leave numerical values unchanged.
-* **MLPs**: Categorical features are embedded via learned embeddings, while numerical features are standardized using z-score normalization.
-
-Performance is evaluated using a 5-fold stratified shuffle split. For models that require hyperparameter tuning (i.e., tree-based models and MLPs), we conduct 100 Optuna trials on a 5-fold shuffle split of the training set.
+For the gradient-boosted families we report **ensemble** results: predictions averaged over the tuned configurations.
 
 ## ⚙️ Installation Guide
 
@@ -164,10 +140,10 @@ For those who wish to understand the underlying mechanics, contribute to the dev
 If you incorporate any part of this repository into your work, please reference it using the following citation:
 
 ```bibtex
-@article{neuralk2025tabench,
-         title={TabBench: A Tabular Machine Learning Benchmark}, 
+@article{neuralk2026tabbench,
+         title={TabBench: An Open Evaluation Suite for Tabular Classification},
          author={Neuralk-AI},
-         year={2025},
+         year={2026},
          publisher = {GitHub},
          howpublished = {\url{https://github.com/Neuralk-AI/TabBench}},
 }
