@@ -16,7 +16,7 @@ from neuralk_foundry_ce.models.classifier import (
 if __name__ == '__main__':
     from tabbench.workflow.use_cases import Classification
     
-    # 188 OpenML classification datasets — the public TabBench v2 base
+    # 189 OpenML classification datasets — the public TabBench v2 base
     # (kept in sync with hf/tabbench/base_datasets.json).
     datasets = [
         3, 6, 11, 12, 14, 15, 16, 18, 20, 22,
@@ -36,8 +36,8 @@ if __name__ == '__main__':
         45075, 45536, 45537, 45538, 45539, 45540, 45547, 45553, 45558, 45578,
         46356, 46441, 46597, 46905, 46906, 46908, 46910, 46911, 46912, 46916,
         46919, 46920, 46922, 46924, 46925, 46927, 46929, 46930, 46932, 46933,
-        46935, 46937, 46938, 46940, 46941, 46944, 46947, 46950, 46951, 46955,
-        46956, 46958, 46960, 46962, 46963, 46969, 46979, 46980,
+        46935, 46937, 46938, 46939, 46940, 46941, 46944, 46947, 46950, 46951,
+        46955, 46956, 46958, 46960, 46962, 46963, 46969, 46979, 46980,
     ]
 
 
