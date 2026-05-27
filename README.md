@@ -32,7 +32,7 @@
 
 ## 👋 Welcome to TabBench
 
-**TabBench** is an open evaluation suite for tabular classification. It features **188 OpenML classification datasets** spanning healthcare, finance & insurance, industry & science, retail and behavioral data, computer vision, games & synthetic data, social and public-sector data, and other domains. Every dataset is filtered to be IID across rows.
+**TabBench** is an open evaluation suite for tabular classification. It features **189 OpenML classification datasets** spanning healthcare, finance & insurance, industry & science, retail and behavioral data, computer vision, games & synthetic data, social and public-sector data, and other domains. Every dataset is filtered to be IID across rows.
 
 It compares the entire current landscape of tabular models head-to-head: gradient-boosted trees, tuned deep tabular networks, and the new wave of pre-trained tabular **foundation models**.
 
@@ -73,7 +73,7 @@ To get quickly started with a TabBench Workflow, you can jump straight into our 
 
 ## 🗂️ Datasets
 
-The public benchmark base is a fixed list of **188 OpenML classification datasets**, defined in [`experiments/run_bench.py`](experiments/run_bench.py). It covers a wide range of sizes (~100 to ~100 000 rows), feature mixes (numeric, categorical, high-cardinality) and class counts (binary to multi-class).
+The public benchmark base is a fixed list of **189 OpenML classification datasets**, defined in [`experiments/run_bench.py`](experiments/run_bench.py). It covers a wide range of sizes (~100 to ~100 000 rows), feature mixes (numeric, categorical, high-cardinality) and class counts (binary to multi-class).
 
 ## 📈 Experimental Evaluation
 
