@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "/*"
+  to = "https://huggingface.co/spaces/Neuralk-AI/TabBench"
+  status = 301
+  force = true
