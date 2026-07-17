@@ -1,3 +1,7 @@
+[build]
+  command = "echo 'no build needed - redirect only'"
+  publish = "."
+
 [[redirects]]
   from = "/*"
   to = "https://huggingface.co/spaces/Neuralk-AI/TabBench"
