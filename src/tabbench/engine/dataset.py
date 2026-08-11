@@ -1,15 +1,9 @@
 from dataclasses import dataclass
-from enum import Enum
 
 import openml
 import pandas as pd
 
-
-class TaskType(Enum):
-    """The kind of prediction task a dataset is used for."""
-
-    CLASSIFICATION = "classification"
-    REGRESSION = "regression"
+from tabbench.constants import TaskType, YamlKeys
 
 
 @dataclass
@@ -43,16 +37,6 @@ class Dataset:
     target: str
 
 
-class YamlKeys(str, Enum):
-    """Keys expected in a dataset entry of openml.yaml."""
-
-    OPENML_ID = "openml_id"
-    OPENML_NAME = "openml_name"
-    DESCRIPTION = "description"
-    TASK = "task"
-    TARGET = "target"
-
-
 def load_dataset(yaml_dict: dict) -> Dataset:
     """Fetch a dataset from OpenML and split it into features and target.
 
@@ -78,7 +62,8 @@ def load_dataset(yaml_dict: dict) -> Dataset:
     except ValueError:
         valid_tasks = [t.value for t in TaskType]
         raise RuntimeError(
-            f"Invalid dataset entry {yaml_dict!r}: task {yaml_dict[YamlKeys.TASK]!r} is not one of {valid_tasks}"
+            f"Invalid dataset entry {yaml_dict!r}: task {yaml_dict[YamlKeys.TASK]!r} "
+            f"is not one of {valid_tasks}"
         ) from None
 
     openml_dataset = openml.datasets.get_dataset(yaml_dict[YamlKeys.OPENML_ID])

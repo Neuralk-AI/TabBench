@@ -56,5 +56,8 @@ dev = [
 ]
 
 [tool.ruff]
-line-length = 81
+line-length = 90
 extend-exclude = ["src/tabbench/datasets/openml/"]
+
+[tool.ruff.lint]
+select = ["E501"]

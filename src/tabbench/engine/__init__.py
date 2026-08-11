@@ -1,3 +1,14 @@
-from .dataset import Dataset, TaskType, load_dataset
+from tabbench.constants import TaskType
 
-__all__ = ["Dataset", "TaskType", "load_dataset"]
+from .dataset import Dataset, load_dataset
+from .model import Model
+from .models import LogisticRegression, load_model
+
+__all__ = [
+    "Dataset",
+    "LogisticRegression",
+    "Model",
+    "TaskType",
+    "load_dataset",
+    "load_model",
+]

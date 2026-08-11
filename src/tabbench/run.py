@@ -1,18 +1,10 @@
 import argparse
 from pathlib import Path
-from typing import Any
 
 import yaml
 
-from tabbench.engine import load_dataset
-
-REPO_ROOT = Path(__file__).resolve().parents[2]
-DATASETS_FILE = Path(__file__).resolve().parent / "datasets" / "openml.yaml"
-OUT_DIR = REPO_ROOT / "out"
-
-
-def load_model(model_path: Path) -> Any:
-    return None
+from tabbench.constants import DATASETS_FILE, OUT_DIR
+from tabbench.engine import load_dataset, load_model
 
 
 def main():
@@ -31,7 +23,8 @@ def main():
     for dataset in datasets:
         ds = load_dataset(dataset)
         print(
-            f"[debug] loaded {ds.openml_name} (openml_id={ds.openml_id}): X={ds.X.shape}, y={ds.y.shape}"
+            f"[debug] loaded {ds.openml_name} (openml_id={ds.openml_id}): "
+            f"X={ds.X.shape}, y={ds.y.shape}"
         )
 
     OUT_DIR.mkdir(exist_ok=True)

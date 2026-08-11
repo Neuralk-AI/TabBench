@@ -64,9 +64,7 @@ def test_load_dataset_raises_runtime_error_on_missing_key(monkeypatch):
         "tabbench.engine.dataset.openml.datasets.get_dataset", fail_if_called
     )
 
-    invalid_entry = {
-        key: value for key, value in VALID_ENTRY.items() if key != "target"
-    }
+    invalid_entry = {key: value for key, value in VALID_ENTRY.items() if key != "target"}
 
     with pytest.raises(RuntimeError, match="target"):
         load_dataset(invalid_entry)
