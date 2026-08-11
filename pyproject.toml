@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0.0", "wheel"]
+requires = ["setuptools>=61.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,16 +7,14 @@ name = "tabbench"
 dynamic = ["version"]
 authors = [
     { name = "Neuralk AI Research Team", email = "alex@neuralk-ai.com" },
-    { name = "Alexandre Pasquiou", email = 'alex@neuralk-ai.com'},
-    { name = "Alexandre Abraham", email = 'alexandre.abraham@neuralk-ai.com'},
-    { name = "Frosso Papanastasiou", email = 'frosso.papanastasiou@neuralk-ai.com'},
-]
-maintainers = [
-    { name = "Neuralk AI Research Team", email = "alex@neuralk-ai.com" },
+    { name = "Aziz Fouché", email = "aziz.fouche@neuralk-ai.com"},  # Main point of contact
+    { name = "Alexandre Pasquiou", email = "alex@neuralk-ai.com"},
+    { name = "Alexandre Abraham", email = "alexandre.abraham@neuralk-ai.com"},
+    { name = "Frosso Papanastasiou", email = "frosso.papanastasiou@neuralk-ai.com"},
 ]
 description = "Datasets and scripts for tabular benchmark."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -29,21 +27,22 @@ classifiers = [
 
 dependencies = [
     "openml>=0.15.1",
-    "neuralk_foundry_ce>=0.0.2",
+    "pandas>=2.2",
+    "numpy>=1.26",
+    "scikit-learn>=1.5",
+    "matplotlib>=3.9",
 ]
 
 [project.urls]
 Homepage = "https://neuralk-ai.com"
-Documentation = "https://readthedocs.org"
+Documentation = "https://huggingface.co/spaces/Neuralk-AI/TabBench"
 Repository = "https://github.com/Neuralk-AI/tabbench"
 
 [tool.setuptools]
-packages = { find = { where = ["src"] } } # If your packages are under src/
+packages = { find = { where = ["src"] } }
 
 [tool.setuptools.package-dir]
-"" = "src" # Maps the root package namespace to the "src" directory
+"" = "src"
 
 [tool.setuptools.dynamic]
-# If you want to dynamically set version or dependencies from other files
 version = {file = "src/tabbench/VERSION.txt"}
-# dependencies = {file = ["requirements.txt"]}
