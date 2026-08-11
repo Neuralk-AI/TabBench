@@ -3,7 +3,9 @@ from dataclasses import dataclass
 import openml
 import pandas as pd
 
-from tabbench.constants import TaskType, YamlKeys
+from tabbench.constants import YamlKeys
+
+SUPPORTED_TASK = "classification"
 
 
 @dataclass
@@ -22,8 +24,8 @@ class Dataset:
         OpenML dataset name.
     description : str
         Short description of the prediction task.
-    task : TaskType
-        Task type.
+    task : str
+        Task type. Currently always "classification".
     target : str
         Name of the target column.
     """
@@ -33,7 +35,7 @@ class Dataset:
     openml_id: int
     openml_name: str
     description: str
-    task: TaskType
+    task: str
     target: str
 
 
@@ -57,14 +59,12 @@ def load_dataset(yaml_dict: dict) -> Dataset:
             f"Invalid dataset entry {yaml_dict!r}: missing key(s) {missing_keys}"
         )
 
-    try:
-        task = TaskType(yaml_dict[YamlKeys.TASK])
-    except ValueError:
-        valid_tasks = [t.value for t in TaskType]
+    task = yaml_dict[YamlKeys.TASK]
+    if task != SUPPORTED_TASK:
         raise RuntimeError(
-            f"Invalid dataset entry {yaml_dict!r}: task {yaml_dict[YamlKeys.TASK]!r} "
-            f"is not one of {valid_tasks}"
-        ) from None
+            f"Invalid dataset entry {yaml_dict!r}: task {task!r} "
+            f"is not {SUPPORTED_TASK!r}"
+        )
 
     openml_dataset = openml.datasets.get_dataset(yaml_dict[YamlKeys.OPENML_ID])
     df, *_ = openml_dataset.get_data()

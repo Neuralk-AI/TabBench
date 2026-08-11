@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from tabbench.engine import Dataset, TaskType, load_dataset
+from tabbench.engine import Dataset, load_dataset
 
 VALID_ENTRY = {
     "openml_id": 3,
@@ -32,7 +32,7 @@ def test_load_dataset_returns_populated_dataset(monkeypatch):
     assert isinstance(dataset, Dataset)
     assert list(dataset.X.columns) == ["a", "b"]
     assert list(dataset.y) == ["won", "lost"]
-    assert dataset.task is TaskType.CLASSIFICATION
+    assert dataset.task == "classification"
     assert dataset.openml_id == 3
     assert dataset.openml_name == "kr-vs-kp"
     assert dataset.target == "class"

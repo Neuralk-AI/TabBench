@@ -6,13 +6,6 @@ DATASETS_FILE = Path(__file__).resolve().parent / "openml.yaml"
 OUT_DIR = REPO_ROOT / "out"
 
 
-class TaskType(Enum):
-    """The kind of prediction task a dataset is used for."""
-
-    CLASSIFICATION = "classification"
-    REGRESSION = "regression"
-
-
 class YamlKeys(str, Enum):
     """Keys expected in a dataset entry of openml.yaml."""
 
