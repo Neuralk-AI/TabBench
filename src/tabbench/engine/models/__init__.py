@@ -1,4 +1,4 @@
-from .base import MODEL_REGISTRY, load_model
+from .base import MODEL_REGISTRY, default_config_path, load_model
 from .lightgbm import LightGBM
 from .logistic_regression import LogisticRegression
 from .random_forest import RandomForest
@@ -10,6 +10,7 @@ __all__ = [
     "MODEL_REGISTRY",
     "RandomForest",
     "XGBoost",
+    "default_config_path",
     "load_model",
 ]
 if __all__ != sorted(__all__):

@@ -7,6 +7,7 @@ from .models import (
     LogisticRegression,
     RandomForest,
     XGBoost,
+    default_config_path,
     load_model,
 )
 
@@ -20,6 +21,7 @@ __all__ = [
     "MODEL_REGISTRY",
     "RandomForest",
     "XGBoost",
+    "default_config_path",
     "dump_results",
     "evaluate",
     "load_dataset",

@@ -1,12 +1,18 @@
 import argparse
 import random
-from pathlib import Path
 
 import numpy as np
 import yaml
 
 from tabbench.constants import DATASETS_FILE
-from tabbench.engine import dump_results, evaluate, load_dataset, load_model
+from tabbench.engine import (
+    MODEL_REGISTRY,
+    default_config_path,
+    dump_results,
+    evaluate,
+    load_dataset,
+    load_model,
+)
 
 
 def seed_everything(seed: int) -> None:
@@ -19,9 +25,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model",
-        type=Path,
+        choices=sorted(MODEL_REGISTRY),
         required=True,
-        help="Path to a .yaml model config file.",
+        help="Name of a registered model.",
     )
     parser.add_argument(
         "--test-size",
@@ -44,13 +50,14 @@ def main():
     args = parser.parse_args()
     seed_everything(args.seed)
 
-    model_config = yaml.safe_load(args.model.read_text())
+    config_path = default_config_path(args.model)
+    model_config = yaml.safe_load(config_path.read_text())
     datasets = yaml.safe_load(DATASETS_FILE.read_text())
 
     results = []
     for dataset in datasets:
         ds = load_dataset(dataset)
-        model = load_model(args.model)
+        model = load_model(config_path)
         result = evaluate(
             model, ds, test_size=args.test_size, seed=args.seed, stratify=args.stratify
         )
@@ -60,7 +67,7 @@ def main():
         )
         results.append(result)
 
-    dump_results(results, model_config, args.model)
+    dump_results(results, model_config, config_path)
 
 
 if __name__ == "__main__":
