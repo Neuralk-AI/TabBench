@@ -3,8 +3,8 @@ from pathlib import Path
 
 import yaml
 
-from tabbench.constants import DATASETS_FILE, OUT_DIR
-from tabbench.engine import load_dataset, load_model
+from tabbench.constants import DATASETS_FILE
+from tabbench.engine import dump_results, evaluate, load_dataset, load_model
 
 
 def main():
@@ -17,22 +17,21 @@ def main():
     )
     args = parser.parse_args()
 
-    model = load_model(args.model)  # noqa: F841
+    model_config = yaml.safe_load(args.model.read_text())
     datasets = yaml.safe_load(DATASETS_FILE.read_text())
 
+    results = []
     for dataset in datasets:
         ds = load_dataset(dataset)
+        model = load_model(args.model)
+        result = evaluate(model, ds)
         print(
-            f"[debug] loaded {ds.openml_name} (openml_id={ds.openml_id}): "
-            f"X={ds.X.shape}, y={ds.y.shape}"
+            f"[debug] {result.openml_name}: "
+            f"accuracy={result.accuracy:.4f} roc_auc={result.roc_auc}"
         )
+        results.append(result)
 
-    OUT_DIR.mkdir(exist_ok=True)
-    results = {
-        "model_config": str(args.model),
-        "datasets": [d["openml_id"] for d in datasets],
-    }
-    (OUT_DIR / "results.yaml").write_text(yaml.dump(results))
+    dump_results(results, model_config, args.model)
 
 
 if __name__ == "__main__":
