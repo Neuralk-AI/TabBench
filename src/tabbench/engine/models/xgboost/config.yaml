@@ -1,0 +1,3 @@
+model: xgboost
+params:
+  n_estimators: 100

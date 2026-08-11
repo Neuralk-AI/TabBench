@@ -32,6 +32,8 @@ dependencies = [
     "scikit-learn>=1.5",
     "matplotlib>=3.9",
     "pyyaml>=6.0",
+    "xgboost>=2.0",
+    "lightgbm>=4.0",
 ]
 
 [project.urls]
@@ -54,6 +56,9 @@ dev = [
     "pytest>=9.1.1",
     "ruff>=0.16.2",
 ]
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
 
 [tool.ruff]
 line-length = 90

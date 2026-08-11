@@ -4,10 +4,16 @@ import yaml
 
 from tabbench.engine import ClassificationModel
 
+from .lightgbm import LightGBM
 from .logistic_regression import LogisticRegression
+from .random_forest import RandomForest
+from .xgboost import XGBoost
 
 MODEL_REGISTRY: dict[str, type[ClassificationModel]] = {
+    "lightgbm": LightGBM,
     "logistic_regression": LogisticRegression,
+    "random_forest": RandomForest,
+    "xgboost": XGBoost,
 }
 
 

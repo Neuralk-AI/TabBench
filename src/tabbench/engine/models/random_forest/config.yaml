@@ -1,0 +1,3 @@
+model: random_forest
+params:
+  n_estimators: 100
