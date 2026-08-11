@@ -2,16 +2,16 @@ from pathlib import Path
 
 import yaml
 
-from tabbench.engine import Model
+from tabbench.engine import ClassificationModel
 
 from .logistic_regression import LogisticRegression
 
-MODEL_REGISTRY: dict[str, type[Model]] = {
+MODEL_REGISTRY: dict[str, type[ClassificationModel]] = {
     "logistic_regression": LogisticRegression,
 }
 
 
-def load_model(path: Path) -> Model:
+def load_model(path: Path) -> ClassificationModel:
     """Instantiate the model named by the "model" key of a yaml config file."""
     yaml_dict = yaml.safe_load(path.read_text())
     name = yaml_dict["model"]

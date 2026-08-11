@@ -1,13 +1,15 @@
 from .dataset import Dataset, load_dataset
-from .evaluate import ClassificationMetrics, dump_results, evaluate
-from .model import Model
-from .models import LogisticRegression, load_model
+from .evaluate import ClassificationMetrics, ClassificationResults, dump_results, evaluate
+from .model import ClassificationModel
+from .models import MODEL_REGISTRY, LogisticRegression, load_model
 
 __all__ = [
     "ClassificationMetrics",
+    "ClassificationModel",
+    "ClassificationResults",
     "Dataset",
     "LogisticRegression",
-    "Model",
+    "MODEL_REGISTRY",
     "dump_results",
     "evaluate",
     "load_dataset",

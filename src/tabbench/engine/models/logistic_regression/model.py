@@ -13,6 +13,10 @@ class LogisticRegression:
 
     estimator: SklearnLogisticRegression
 
+    @property
+    def classes(self) -> np.ndarray:
+        return self.estimator.classes_
+
     def fit(self, X: pd.DataFrame, y: pd.Series) -> "LogisticRegression":
         self.estimator.fit(X, y)
         return self
