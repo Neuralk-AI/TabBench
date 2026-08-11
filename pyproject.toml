@@ -34,6 +34,7 @@ dependencies = [
     "pyyaml>=6.0",
     "xgboost>=2.0",
     "lightgbm>=4.0",
+    "torch>=2.0",
 ]
 
 [project.urls]

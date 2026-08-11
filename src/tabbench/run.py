@@ -2,6 +2,7 @@ import argparse
 import random
 
 import numpy as np
+import torch
 import yaml
 
 from tabbench.constants import DATASETS_FILE
@@ -16,9 +17,10 @@ from tabbench.engine import (
 
 
 def seed_everything(seed: int) -> None:
-    """Seed the random and numpy global RNGs for reproducibility."""
+    """Seed the random, numpy, and torch global RNGs for reproducibility."""
     random.seed(seed)
     np.random.seed(seed)
+    torch.manual_seed(seed)
 
 
 def main():
