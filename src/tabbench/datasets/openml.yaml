@@ -1,0 +1,17 @@
+- openml_id: 3
+  openml_name: kr-vs-kp
+  description: Predict whether White can win a King+Rook vs King+Pawn chess endgame.
+  task: classification
+  target: class
+
+- openml_id: 6
+  openml_name: letter
+  description: Identify which of 26 capital letters a distorted pixel display shows, from 16 shape statistics.
+  task: classification
+  target: class
+
+- openml_id: 11
+  openml_name: balance-scale
+  description: Predict which way a balance scale tips from the weight and distance on each arm.
+  task: classification
+  target: class
