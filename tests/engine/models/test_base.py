@@ -17,6 +17,7 @@ def test_model_config_load_parses_yaml_fields(tmp_path):
     path.write_text(
         "model: logistic_regression\n"
         "target: tabbench.engine.models.logistic_regression.model.LogisticRegression\n"
+        "requires_cuda: false\n"
         "params:\n  C: 0.5\n"
     )
 
@@ -26,15 +27,17 @@ def test_model_config_load_parses_yaml_fields(tmp_path):
     assert config.target == (
         "tabbench.engine.models.logistic_regression.model.LogisticRegression"
     )
+    assert config.requires_cuda is False
     assert config.params == {"C": 0.5}
 
 
-def test_model_config_load_defaults_params(tmp_path):
+def test_model_config_load_defaults_requires_cuda_and_params(tmp_path):
     path = tmp_path / "minimal.yaml"
     path.write_text("model: minimal\ntarget: some.module.Class\n")
 
     config = ModelConfig.load(path)
 
+    assert config.requires_cuda is False
     assert config.params == {}
 
 
@@ -42,6 +45,7 @@ def test_load_model_resolves_target_and_forwards_params():
     config = ModelConfig(
         name="logistic_regression",
         target="tabbench.engine.models.logistic_regression.model.LogisticRegression",
+        requires_cuda=False,
         params={"C": 0.5},
     )
 
@@ -55,6 +59,7 @@ def test_load_model_raises_on_unresolvable_target():
     config = ModelConfig(
         name="broken",
         target="tabbench.engine.models.does_not_exist.model.Nope",
+        requires_cuda=False,
         params={},
     )
 

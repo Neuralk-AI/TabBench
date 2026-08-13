@@ -1,5 +1,6 @@
 model: lightgbm
 target: tabbench.engine.models.lightgbm.model.LightGBM
+requires_cuda: false
 params:
   n_estimators: 100
   verbose: -1  # silence LightGBM's default per-iteration logging

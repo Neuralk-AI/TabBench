@@ -1,4 +1,5 @@
 model: random_forest
 target: tabbench.engine.models.random_forest.model.RandomForest
+requires_cuda: false
 params:
   n_estimators: 100
