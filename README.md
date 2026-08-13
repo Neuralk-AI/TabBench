@@ -20,6 +20,13 @@ A tabular machine learning benchmark for industrial tasks.
 pip install tabbench
 ```
 
+## Usage
+
+```bash
+tabbench run --model xgboost
+tabbench help
+```
+
 ## Citing TabBench
 
 ```bibtex

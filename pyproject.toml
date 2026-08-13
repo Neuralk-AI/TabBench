@@ -38,6 +38,9 @@ dependencies = [
     "catboost>=1.2",
 ]
 
+[project.scripts]
+tabbench = "tabbench.cli:main"
+
 [project.urls]
 Homepage = "https://neuralk-ai.com"
 Documentation = "https://huggingface.co/spaces/Neuralk-AI/TabBench"

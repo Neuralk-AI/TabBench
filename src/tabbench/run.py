@@ -19,8 +19,7 @@ from tabbench.engine import (
 )
 
 
-def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
+def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--model",
         required=True,
@@ -47,6 +46,11 @@ def _parse_args() -> argparse.Namespace:
         default=True,
         help="Stratify the train/test split on the target.",
     )
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    add_arguments(parser)
     return parser.parse_args()
 
 
