@@ -57,12 +57,7 @@ def main():
     for dataset in datasets:
         ds = load_dataset(dataset)
         model = load_model(model_config)
-        # Seed torch's RNG here, but only if loading the model actually imported
-        # it (checking sys.modules rather than importing it ourselves): importing
-        # torch unconditionally would load its bundled OpenMP runtime into every
-        # run, including non-torch baselines, and that segfaults on macOS once
-        # xgboost/lightgbm's own (Homebrew-linked) OpenMP runtime does real work
-        # in the same process.
+        # Seed torch's RNG here only if torch has been imported by the model.
         torch = sys.modules.get("torch")
         if torch is not None:
             torch.manual_seed(args.seed)
