@@ -16,11 +16,7 @@ A tabular machine learning benchmark for industrial tasks.
 
 ## Install
 
-```bash
-pip install tabbench
-```
-
-For development, clone the repo and use [uv](https://docs.astral.sh/uv/):
+Clone the repo and use [uv](https://docs.astral.sh/uv/):
 
 ```bash
 git clone https://github.com/Neuralk-AI/TabBench
