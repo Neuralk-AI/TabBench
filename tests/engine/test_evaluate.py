@@ -1,5 +1,6 @@
 import importlib
 import math
+from dataclasses import asdict
 
 import numpy as np
 import pandas as pd
@@ -9,6 +10,7 @@ from tabbench.engine import (
     ClassificationMetrics,
     ClassificationResults,
     Dataset,
+    ModelConfig,
     Status,
     dump_results,
     evaluate,
@@ -157,7 +159,12 @@ def test_dump_results_writes_summary_and_predictions(tmp_path, monkeypatch):
             predictions=predictions,
         )
     ]
-    model_config = {"model": "logistic_regression", "params": {"C": 1.0}}
+    model_config = ModelConfig(
+        name="logistic_regression",
+        target="tabbench.engine.models.logistic_regression.model.LogisticRegression",
+        requires_cuda=False,
+        params={"C": 1.0},
+    )
     model_config_path = tmp_path / "config.yaml"
 
     run_dir = dump_results(results, model_config, model_config_path)
@@ -165,7 +172,7 @@ def test_dump_results_writes_summary_and_predictions(tmp_path, monkeypatch):
     assert run_dir.parent == tmp_path
     assert run_dir.name.endswith("_logistic_regression")
     summary = yaml.safe_load((run_dir / "summary.yaml").read_text())
-    assert summary["model_config"] == model_config
+    assert summary["model_config"] == asdict(model_config)
     assert summary["model_config_path"] == str(model_config_path)
     assert summary["results"] == [
         {
@@ -203,7 +210,12 @@ def test_dump_results_skips_predictions_file_for_non_ok_results(tmp_path, monkey
     failed_result = ClassificationResults.failure(
         2, "fake-failed", Status.FAILURE, error_message="RuntimeError: boom"
     )
-    model_config = {"model": "logistic_regression", "params": {"C": 1.0}}
+    model_config = ModelConfig(
+        name="logistic_regression",
+        target="tabbench.engine.models.logistic_regression.model.LogisticRegression",
+        requires_cuda=False,
+        params={"C": 1.0},
+    )
 
     run_dir = dump_results([ok_result, failed_result], model_config, tmp_path / "c.yaml")
 

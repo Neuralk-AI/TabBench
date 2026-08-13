@@ -1,41 +1,33 @@
-import argparse  # noqa: I001
+import argparse
 import random
+import sys
 
 import numpy as np
 import yaml
 
 from tabbench.constants import DATASETS_FILE
 from tabbench.engine import (
-    MODEL_REGISTRY,
     ClassificationResults,
+    ModelConfig,
     Status,
-    default_config_path,
+    available_baselines,
     dump_results,
     evaluate,
     load_dataset,
     load_model,
+    resolve_config_path,
 )
-
-# Import after tabbench.engine: xgboost/lightgbm link Homebrew's libomp, while
-# torch bundles its own copy. Loading torch's first segfaults on macOS once a
-# model actually runs multi-threaded (e.g. during fit()).
-import torch
-
-
-def seed_everything(seed: int) -> None:
-    """Seed the random, numpy, and torch global RNGs for reproducibility."""
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
 
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model",
-        choices=sorted(MODEL_REGISTRY),
         required=True,
-        help="Name of a registered model.",
+        help=(
+            "Name of a packaged baseline (" + ", ".join(available_baselines()) + ") "
+            "or a path to a custom model's yaml config."
+        ),
     )
     parser.add_argument(
         "--test-size",
@@ -59,25 +51,37 @@ def _parse_args() -> argparse.Namespace:
 
 
 def main(model: str, test_size: float, seed: int, stratify: bool) -> None:
-    seed_everything(seed)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    random.seed(seed)
+    np.random.seed(seed)
 
-    config_path = default_config_path(model)
-    model_config = yaml.safe_load(config_path.read_text())
+    config_path = resolve_config_path(model)
+    model_config = ModelConfig.load(config_path)
     datasets = yaml.safe_load(DATASETS_FILE.read_text())
+
+    # Only check CUDA availability (which needs torch) for models that declare
+    # they need it, to avoid clashes with OpenMP used in XGBoost/LightGBM.
+    wrong_device = False
+    if model_config.requires_cuda:
+        import torch
+
+        wrong_device = not torch.cuda.is_available()
 
     results = []
     for dataset in datasets:
         ds = load_dataset(dataset)
-        loaded_model = load_model(config_path)
-        if loaded_model.requires_cuda and device.type != "cuda":
+        if wrong_device:
             result = ClassificationResults.failure(
                 ds.openml_id,
                 ds.openml_name,
                 Status.WRONG_DEVICE,
-                error_message=f"{model} requires CUDA but resolved device is {device}",
+                error_message=f"{model} requires CUDA but no CUDA device is available",
             )
         else:
+            loaded_model = load_model(model_config)
+            # Seed torch's RNG here only if torch has been imported by the model.
+            torch = sys.modules.get("torch")
+            if torch is not None:
+                torch.manual_seed(seed)
             result = evaluate(
                 loaded_model, ds, test_size=test_size, seed=seed, stratify=stratify
             )

@@ -1,22 +1,17 @@
 import numpy as np
 import pandas as pd
 
-from tabbench.engine import Dummy
+from tabbench.engine.models.dummy import Dummy
 
 
-def test_load_reads_params_from_yaml(tmp_path):
-    path = tmp_path / "dummy.yaml"
-    path.write_text("model: dummy\nparams: {}\n")
-
-    model = Dummy.load(path)
+def test_init_forwards_params_to_estimator():
+    model = Dummy()
 
     assert model.estimator.strategy == "prior"
 
 
-def test_fit_predict_roundtrip(tmp_path):
-    path = tmp_path / "dummy.yaml"
-    path.write_text("model: dummy\nparams: {}\n")
-    model = Dummy.load(path)
+def test_fit_predict_roundtrip():
+    model = Dummy()
 
     X = pd.DataFrame({"a": [0, 0, 1, 1], "b": [0, 1, 0, 1]})
     y = pd.Series(["low", "low", "high", "high"])

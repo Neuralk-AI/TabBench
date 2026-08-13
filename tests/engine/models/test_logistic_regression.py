@@ -1,23 +1,18 @@
 import numpy as np
 import pandas as pd
 
-from tabbench.engine import LogisticRegression
+from tabbench.engine.models.logistic_regression import LogisticRegression
 
 
-def test_load_reads_params_from_yaml(tmp_path):
-    path = tmp_path / "logistic_regression.yaml"
-    path.write_text("model: logistic_regression\nparams:\n  C: 0.5\n  max_iter: 200\n")
-
-    model = LogisticRegression.load(path)
+def test_init_forwards_params_to_estimator():
+    model = LogisticRegression(C=0.5, max_iter=200)
 
     assert model.estimator.C == 0.5
     assert model.estimator.max_iter == 200
 
 
-def test_fit_predict_roundtrip(tmp_path):
-    path = tmp_path / "logistic_regression.yaml"
-    path.write_text("model: logistic_regression\nparams:\n  max_iter: 1000\n")
-    model = LogisticRegression.load(path)
+def test_fit_predict_roundtrip():
+    model = LogisticRegression(max_iter=1000)
 
     X = pd.DataFrame({"a": [0, 0, 1, 1], "b": [0, 1, 0, 1]})
     y = pd.Series(["low", "low", "high", "high"])

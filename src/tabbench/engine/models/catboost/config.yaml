@@ -1,4 +1,6 @@
 model: catboost
+target: tabbench.engine.models.catboost.model.CatBoost
+requires_cuda: false
 params:
   verbose: 0  # silence CatBoost's default per-iteration logging
   allow_writing_files: false  # don't litter cwd with a catboost_info/ directory

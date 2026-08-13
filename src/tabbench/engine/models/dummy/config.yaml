@@ -1,2 +1,4 @@
 model: dummy
+target: tabbench.engine.models.dummy.model.Dummy
+requires_cuda: false
 params: {}

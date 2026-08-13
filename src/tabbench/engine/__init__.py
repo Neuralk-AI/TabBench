@@ -6,39 +6,28 @@ from .evaluate import (
     dump_results,
     evaluate,
 )
-from .model import ClassificationModel
+from .model import ClassificationModel, ModelConfig
 from .models import (
-    KNN,
-    MODEL_REGISTRY,
-    CatBoost,
-    Dummy,
-    LightGBM,
-    LogisticRegression,
-    RandomForest,
-    XGBoost,
+    available_baselines,
     default_config_path,
     load_model,
+    resolve_config_path,
 )
 
 __all__ = [
-    "CatBoost",
     "ClassificationMetrics",
     "ClassificationModel",
     "ClassificationResults",
     "Dataset",
-    "Dummy",
-    "KNN",
-    "LightGBM",
-    "LogisticRegression",
-    "MODEL_REGISTRY",
-    "RandomForest",
+    "ModelConfig",
     "Status",
-    "XGBoost",
+    "available_baselines",
     "default_config_path",
     "dump_results",
     "evaluate",
     "load_dataset",
     "load_model",
+    "resolve_config_path",
 ]
 if __all__ != sorted(__all__):
     raise RuntimeError("__all__ is not sorted")

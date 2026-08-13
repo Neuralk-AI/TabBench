@@ -2,6 +2,7 @@ import importlib
 
 import numpy as np
 import pandas as pd
+import torch
 import yaml
 
 from tabbench.engine import Dataset
@@ -10,14 +11,8 @@ from tabbench.run import main
 run_module = importlib.import_module("tabbench.run")
 evaluate_module = importlib.import_module("tabbench.engine.evaluate")
 
-# Import after tabbench.run (which itself imports tabbench.engine before torch): see
-# the comment in run.py about the xgboost/lightgbm vs torch libomp conflict on macOS.
-import torch  # noqa: I001
-
 
 class FakeModel:
-    requires_cuda = False
-
     @property
     def classes(self):
         return self._classes
@@ -34,10 +29,6 @@ class FakeModel:
         return np.full((len(X), n_classes), 1 / n_classes)
 
 
-class CudaOnlyFakeModel(FakeModel):
-    requires_cuda = True
-
-
 def fake_load_dataset(yaml_dict):
     return Dataset(
         X=pd.DataFrame({"a": [0, 1, 0, 1], "b": [1, 0, 1, 0]}),
@@ -50,7 +41,7 @@ def fake_load_dataset(yaml_dict):
     )
 
 
-def setup_run(tmp_path, monkeypatch, model, cuda_available):
+def setup_run(tmp_path, monkeypatch, model, cuda_available, requires_cuda):
     datasets_file = tmp_path / "datasets.yaml"
     datasets_file.write_text(
         yaml.dump(
@@ -65,15 +56,29 @@ def setup_run(tmp_path, monkeypatch, model, cuda_available):
             ]
         )
     )
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(
+        yaml.dump(
+            {
+                "model": "dummy",
+                "target": "irrelevant.module.Class",
+                "requires_cuda": requires_cuda,
+                "params": {},
+            }
+        )
+    )
     monkeypatch.setattr(run_module, "DATASETS_FILE", datasets_file)
     monkeypatch.setattr(run_module, "load_dataset", fake_load_dataset)
-    monkeypatch.setattr(run_module, "load_model", lambda path: model)
+    monkeypatch.setattr(run_module, "resolve_config_path", lambda model_arg: config_path)
+    monkeypatch.setattr(run_module, "load_model", lambda config: model)
     monkeypatch.setattr(torch.cuda, "is_available", lambda: cuda_available)
     monkeypatch.setattr(evaluate_module, "OUT_DIR", tmp_path)
 
 
 def test_main_reports_wrong_device_without_evaluating(tmp_path, monkeypatch):
-    setup_run(tmp_path, monkeypatch, CudaOnlyFakeModel(), cuda_available=False)
+    setup_run(
+        tmp_path, monkeypatch, FakeModel(), cuda_available=False, requires_cuda=True
+    )
 
     main(model="dummy", test_size=0.2, seed=0, stratify=True)
 
@@ -86,7 +91,9 @@ def test_main_reports_wrong_device_without_evaluating(tmp_path, monkeypatch):
 
 
 def test_main_reports_ok_status_on_success(tmp_path, monkeypatch):
-    setup_run(tmp_path, monkeypatch, FakeModel(), cuda_available=False)
+    setup_run(
+        tmp_path, monkeypatch, FakeModel(), cuda_available=False, requires_cuda=False
+    )
 
     main(model="dummy", test_size=0.5, seed=0, stratify=False)
 

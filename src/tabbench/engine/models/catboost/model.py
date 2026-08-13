@@ -1,25 +1,17 @@
-from dataclasses import dataclass
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
-import yaml
 from catboost import CatBoostClassifier as _CatBoostClassifier
 
 
-@dataclass
 class CatBoost:
     """Gradient-boosted trees classifier, delegating to CatBoost."""
 
-    estimator: _CatBoostClassifier
+    def __init__(self, **params) -> None:
+        self.estimator = _CatBoostClassifier(**params)
 
     @property
     def classes(self) -> np.ndarray:
         return self.estimator.classes_
-
-    @property
-    def requires_cuda(self) -> bool:
-        return False
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> "CatBoost":
         self.estimator.fit(X, y)
@@ -32,10 +24,3 @@ class CatBoost:
 
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         return self.estimator.predict_proba(X)
-
-    @classmethod
-    def load(cls, path: Path) -> "CatBoost":
-        """Build a CatBoost from the params section of a yaml config file."""
-        yaml_dict = yaml.safe_load(path.read_text()) or {}
-        params = yaml_dict.get("params") or {}
-        return cls(estimator=_CatBoostClassifier(**params))

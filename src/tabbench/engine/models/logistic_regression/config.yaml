@@ -1,4 +1,6 @@
 model: logistic_regression
+target: tabbench.engine.models.logistic_regression.model.LogisticRegression
+requires_cuda: false
 params:
   C: 1.0
   max_iter: 1000

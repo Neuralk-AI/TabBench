@@ -1,22 +1,17 @@
 import numpy as np
 import pandas as pd
 
-from tabbench.engine import KNN
+from tabbench.engine.models.knn import KNN
 
 
-def test_load_reads_params_from_yaml(tmp_path):
-    path = tmp_path / "knn.yaml"
-    path.write_text("model: knn\nparams:\n  n_neighbors: 3\n")
-
-    model = KNN.load(path)
+def test_init_forwards_params_to_estimator():
+    model = KNN(n_neighbors=3)
 
     assert model.estimator.n_neighbors == 3
 
 
-def test_fit_predict_roundtrip(tmp_path):
-    path = tmp_path / "knn.yaml"
-    path.write_text("model: knn\nparams:\n  n_neighbors: 1\n")
-    model = KNN.load(path)
+def test_fit_predict_roundtrip():
+    model = KNN(n_neighbors=1)
 
     X = pd.DataFrame({"a": [0, 0, 1, 1], "b": [0, 1, 0, 1]})
     y = pd.Series(["low", "low", "high", "high"])
