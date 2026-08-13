@@ -1,7 +1,7 @@
 import importlib
 from pathlib import Path
 
-from ..model import ClassificationModel, ModelConfig
+from tabbench.engine.model import ClassificationModel, ModelConfig
 
 _MODELS_DIR = Path(__file__).parent
 
