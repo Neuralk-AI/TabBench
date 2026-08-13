@@ -6,7 +6,6 @@ import pytest
 from tabbench.engine import (
     ModelConfig,
     available_baselines,
-    default_config_path,
     load_model,
     resolve_config_path,
 )
@@ -68,22 +67,16 @@ def test_load_model_raises_on_unresolvable_target():
         load_model(config)
 
 
-def test_default_config_path_points_at_packaged_yaml():
-    path = default_config_path("logistic_regression")
+def test_resolve_config_path_returns_packaged_path_for_baseline_name():
+    path = resolve_config_path("logistic_regression")
 
     assert path.name == "config.yaml"
     assert path.parent.name == "logistic_regression"
 
 
-def test_default_config_path_raises_for_unknown_baseline():
+def test_resolve_config_path_raises_for_unknown_baseline():
     with pytest.raises(RuntimeError, match="unknown_model"):
-        default_config_path("unknown_model")
-
-
-def test_resolve_config_path_returns_packaged_path_for_baseline_name():
-    assert resolve_config_path("logistic_regression") == default_config_path(
-        "logistic_regression"
-    )
+        resolve_config_path("unknown_model")
 
 
 def test_resolve_config_path_returns_custom_path_when_file_exists(tmp_path):
@@ -100,17 +93,12 @@ def test_resolve_config_path_raises_for_missing_yaml_file(tmp_path):
         resolve_config_path(str(missing))
 
 
-def test_resolve_config_path_raises_for_unknown_baseline_name():
-    with pytest.raises(RuntimeError, match="not_a_real_model"):
-        resolve_config_path("not_a_real_model")
-
-
 def test_available_baselines_all_resolve_to_a_packaged_yaml():
     names = available_baselines()
 
     assert names  # sanity: discovery actually found something
     for name in names:
-        assert default_config_path(name).is_file()
+        assert resolve_config_path(name).is_file()
 
 
 @pytest.mark.parametrize("name", available_baselines())
@@ -125,9 +113,9 @@ def test_load_and_fit_never_imports_torch(name):
     script = f"""
 import sys
 import pandas as pd
-from tabbench.engine import ModelConfig, default_config_path, load_model
+from tabbench.engine import ModelConfig, load_model, resolve_config_path
 
-config = ModelConfig.load(default_config_path({name!r}))
+config = ModelConfig.load(resolve_config_path({name!r}))
 model = load_model(config)
 X = pd.DataFrame({{"a": [0, 0, 1, 1], "b": [0, 1, 0, 1]}})
 y = pd.Series(["low", "low", "high", "high"])

@@ -7,12 +7,7 @@ from .evaluate import (
     evaluate,
 )
 from .model import ClassificationModel, ModelConfig
-from .models import (
-    available_baselines,
-    default_config_path,
-    load_model,
-    resolve_config_path,
-)
+from .models import available_baselines, load_model, resolve_config_path
 
 __all__ = [
     "ClassificationMetrics",
@@ -22,7 +17,6 @@ __all__ = [
     "ModelConfig",
     "Status",
     "available_baselines",
-    "default_config_path",
     "dump_results",
     "evaluate",
     "load_dataset",

@@ -1,13 +1,7 @@
-from .base import (
-    available_baselines,
-    default_config_path,
-    load_model,
-    resolve_config_path,
-)
+from .base import available_baselines, load_model, resolve_config_path
 
 __all__ = [
     "available_baselines",
-    "default_config_path",
     "load_model",
     "resolve_config_path",
 ]

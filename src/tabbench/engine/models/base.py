@@ -11,16 +11,6 @@ def available_baselines() -> list[str]:
     return sorted(p.parent.name for p in _MODELS_DIR.glob("*/config.yaml"))
 
 
-def default_config_path(name: str) -> Path:
-    """Path to the packaged config.yaml for a baseline model name, by convention."""
-    path = _MODELS_DIR / name / "config.yaml"
-    if not path.is_file():
-        raise RuntimeError(
-            f"Unknown baseline model {name!r}; expected one of {available_baselines()}"
-        )
-    return path
-
-
 def resolve_config_path(model_arg: str) -> Path:
     """Resolve a --model argument to a config.yaml path.
 
@@ -32,7 +22,13 @@ def resolve_config_path(model_arg: str) -> Path:
         if not path.is_file():
             raise RuntimeError(f"Config file not found: {model_arg}")
         return path
-    return default_config_path(model_arg)
+    path = _MODELS_DIR / model_arg / "config.yaml"
+    if not path.is_file():
+        raise RuntimeError(
+            f"Unknown baseline model {model_arg!r}; "
+            f"expected one of {available_baselines()}"
+        )
+    return path
 
 
 def load_model(config: ModelConfig) -> ClassificationModel:
