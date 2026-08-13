@@ -1,39 +1,31 @@
-import argparse  # noqa: I001
+import argparse
 import random
+import sys
 
 import numpy as np
 import yaml
 
 from tabbench.constants import DATASETS_FILE
 from tabbench.engine import (
-    MODEL_REGISTRY,
-    default_config_path,
+    ModelConfig,
+    available_baselines,
     dump_results,
     evaluate,
     load_dataset,
     load_model,
+    resolve_config_path,
 )
-
-# Import after tabbench.engine: xgboost/lightgbm link Homebrew's libomp, while
-# torch bundles its own copy. Loading torch's first segfaults on macOS once a
-# model actually runs multi-threaded (e.g. during fit()).
-import torch
-
-
-def seed_everything(seed: int) -> None:
-    """Seed the random, numpy, and torch global RNGs for reproducibility."""
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model",
-        choices=sorted(MODEL_REGISTRY),
         required=True,
-        help="Name of a registered model.",
+        help=(
+            "Name of a packaged baseline (" + ", ".join(available_baselines()) + ") "
+            "or a path to a custom model's yaml config."
+        ),
     )
     parser.add_argument(
         "--test-size",
@@ -54,16 +46,26 @@ def main():
         help="Stratify the train/test split on the target.",
     )
     args = parser.parse_args()
-    seed_everything(args.seed)
+    random.seed(args.seed)
+    np.random.seed(args.seed)
 
-    config_path = default_config_path(args.model)
-    model_config = yaml.safe_load(config_path.read_text())
+    config_path = resolve_config_path(args.model)
+    model_config = ModelConfig.load(config_path)
     datasets = yaml.safe_load(DATASETS_FILE.read_text())
 
     results = []
     for dataset in datasets:
         ds = load_dataset(dataset)
-        model = load_model(config_path)
+        model = load_model(model_config)
+        # Seed torch's RNG here, but only if loading the model actually imported
+        # it (checking sys.modules rather than importing it ourselves): importing
+        # torch unconditionally would load its bundled OpenMP runtime into every
+        # run, including non-torch baselines, and that segfaults on macOS once
+        # xgboost/lightgbm's own (Homebrew-linked) OpenMP runtime does real work
+        # in the same process.
+        torch = sys.modules.get("torch")
+        if torch is not None:
+            torch.manual_seed(args.seed)
         result = evaluate(
             model, ds, test_size=args.test_size, seed=args.seed, stratify=args.stratify
         )

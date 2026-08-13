@@ -16,7 +16,7 @@ from sklearn.model_selection import train_test_split
 from tabbench.constants import OUT_DIR
 
 from .dataset import Dataset
-from .model import ClassificationModel
+from .model import ClassificationModel, ModelConfig
 
 
 @dataclass
@@ -126,7 +126,9 @@ def evaluate(
 
 
 def dump_results(
-    results: list[ClassificationResults], model_config: dict, model_config_path: Path
+    results: list[ClassificationResults],
+    model_config: ModelConfig,
+    model_config_path: Path,
 ) -> Path:
     """Write a run's metrics summary and per-dataset predictions to OUT_DIR.
 
@@ -137,7 +139,7 @@ def dump_results(
     ----------
     results : list of ClassificationResults
         One per evaluated dataset.
-    model_config : dict
+    model_config : ModelConfig
         Parsed model yaml config, embedded verbatim in summary.yaml.
     model_config_path : Path
         Path to the model yaml config, recorded in summary.yaml.
@@ -148,14 +150,14 @@ def dump_results(
         The created run directory.
     """
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    run_dir = OUT_DIR / f"{timestamp}_{model_config['model']}"
+    run_dir = OUT_DIR / f"{timestamp}_{model_config.name}"
     run_dir.mkdir(parents=True)
 
     (run_dir / "summary.yaml").write_text(
         yaml.dump(
             {
                 "model_config_path": str(model_config_path),
-                "model_config": model_config,
+                "model_config": asdict(model_config),
                 "results": [
                     {
                         "openml_id": result.openml_id,

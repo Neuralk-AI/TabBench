@@ -1,2 +1,3 @@
 model: dummy
+target: tabbench.engine.models.dummy.model.Dummy
 params: {}

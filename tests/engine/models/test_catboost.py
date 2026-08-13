@@ -1,28 +1,17 @@
 import numpy as np
 import pandas as pd
 
-from tabbench.engine import CatBoost
+from tabbench.engine.models.catboost import CatBoost
 
 
-def test_load_reads_params_from_yaml(tmp_path):
-    path = tmp_path / "catboost.yaml"
-    path.write_text(
-        "model: catboost\nparams:\n  iterations: 5\n  verbose: 0\n"
-        "  allow_writing_files: false\n"
-    )
-
-    model = CatBoost.load(path)
+def test_init_forwards_params_to_estimator():
+    model = CatBoost(iterations=5, verbose=0, allow_writing_files=False)
 
     assert model.estimator.get_params()["iterations"] == 5
 
 
-def test_fit_predict_roundtrip(tmp_path):
-    path = tmp_path / "catboost.yaml"
-    path.write_text(
-        "model: catboost\nparams:\n  iterations: 5\n  verbose: 0\n"
-        "  allow_writing_files: false\n"
-    )
-    model = CatBoost.load(path)
+def test_fit_predict_roundtrip():
+    model = CatBoost(iterations=5, verbose=0, allow_writing_files=False)
 
     X = pd.DataFrame({"a": [0, 0, 1, 1], "b": [0, 1, 0, 1]})
     y = pd.Series(["low", "low", "high", "high"])
@@ -37,14 +26,9 @@ def test_fit_predict_roundtrip(tmp_path):
     assert np.allclose(probabilities.sum(axis=1), 1.0)
 
 
-def test_predict_returns_1d_array_for_multiclass_targets(tmp_path):
+def test_predict_returns_1d_array_for_multiclass_targets():
     # CatBoost's own predict() returns shape (n, 1) instead of (n,) for 3+ classes.
-    path = tmp_path / "catboost.yaml"
-    path.write_text(
-        "model: catboost\nparams:\n  iterations: 5\n  verbose: 0\n"
-        "  allow_writing_files: false\n"
-    )
-    model = CatBoost.load(path)
+    model = CatBoost(iterations=5, verbose=0, allow_writing_files=False)
 
     X = pd.DataFrame({"a": [0, 1, 2, 0, 1, 2], "b": [2, 0, 1, 2, 0, 1]})
     y = pd.Series(["low", "medium", "high", "low", "medium", "high"])

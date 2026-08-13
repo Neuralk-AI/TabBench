@@ -1,22 +1,17 @@
 import numpy as np
 import pandas as pd
 
-from tabbench.engine import RandomForest
+from tabbench.engine.models.random_forest import RandomForest
 
 
-def test_load_reads_params_from_yaml(tmp_path):
-    path = tmp_path / "random_forest.yaml"
-    path.write_text("model: random_forest\nparams:\n  n_estimators: 5\n")
-
-    model = RandomForest.load(path)
+def test_init_forwards_params_to_estimator():
+    model = RandomForest(n_estimators=5)
 
     assert model.estimator.n_estimators == 5
 
 
-def test_fit_predict_roundtrip(tmp_path):
-    path = tmp_path / "random_forest.yaml"
-    path.write_text("model: random_forest\nparams:\n  n_estimators: 5\n")
-    model = RandomForest.load(path)
+def test_fit_predict_roundtrip():
+    model = RandomForest(n_estimators=5)
 
     X = pd.DataFrame({"a": [0, 0, 1, 1], "b": [0, 1, 0, 1]})
     y = pd.Series(["low", "low", "high", "high"])
