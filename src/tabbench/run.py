@@ -1,8 +1,7 @@
-import argparse
+import argparse  # noqa: I001
 import random
 
 import numpy as np
-import torch
 import yaml
 
 from tabbench.constants import DATASETS_FILE
@@ -14,6 +13,11 @@ from tabbench.engine import (
     load_dataset,
     load_model,
 )
+
+# Import after tabbench.engine: xgboost/lightgbm link Homebrew's libomp, while
+# torch bundles its own copy. Loading torch's first segfaults on macOS once a
+# model actually runs multi-threaded (e.g. during fit()).
+import torch
 
 
 def seed_everything(seed: int) -> None:

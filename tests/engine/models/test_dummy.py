@@ -1,22 +1,22 @@
 import numpy as np
 import pandas as pd
 
-from tabbench.engine import LightGBM
+from tabbench.engine import Dummy
 
 
 def test_load_reads_params_from_yaml(tmp_path):
-    path = tmp_path / "lightgbm.yaml"
-    path.write_text("model: lightgbm\nparams:\n  n_estimators: 5\n")
+    path = tmp_path / "dummy.yaml"
+    path.write_text("model: dummy\nparams: {}\n")
 
-    model = LightGBM.load(path)
+    model = Dummy.load(path)
 
-    assert model.estimator.n_estimators == 5
+    assert model.estimator.strategy == "prior"
 
 
 def test_fit_predict_roundtrip(tmp_path):
-    path = tmp_path / "lightgbm.yaml"
-    path.write_text("model: lightgbm\nparams:\n  n_estimators: 5\n")
-    model = LightGBM.load(path)
+    path = tmp_path / "dummy.yaml"
+    path.write_text("model: dummy\nparams: {}\n")
+    model = Dummy.load(path)
 
     X = pd.DataFrame({"a": [0, 0, 1, 1], "b": [0, 1, 0, 1]})
     y = pd.Series(["low", "low", "high", "high"])

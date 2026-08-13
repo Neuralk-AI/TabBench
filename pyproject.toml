@@ -35,6 +35,7 @@ dependencies = [
     "xgboost>=2.0",
     "lightgbm>=4.0",
     "torch>=2.0",
+    "catboost>=1.2",
 ]
 
 [project.urls]
@@ -66,4 +67,4 @@ line-length = 90
 extend-exclude = ["src/tabbench/datasets/openml/"]
 
 [tool.ruff.lint]
-select = ["E501"]
+select = ["E501", "I"]

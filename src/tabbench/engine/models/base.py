@@ -4,12 +4,18 @@ import yaml
 
 from tabbench.engine import ClassificationModel
 
+from .catboost import CatBoost
+from .dummy import Dummy
+from .knn import KNN
 from .lightgbm import LightGBM
 from .logistic_regression import LogisticRegression
 from .random_forest import RandomForest
 from .xgboost import XGBoost
 
 MODEL_REGISTRY: dict[str, type[ClassificationModel]] = {
+    "catboost": CatBoost,
+    "dummy": Dummy,
+    "knn": KNN,
     "lightgbm": LightGBM,
     "logistic_regression": LogisticRegression,
     "random_forest": RandomForest,

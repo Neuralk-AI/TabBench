@@ -1,0 +1,4 @@
+model: catboost
+params:
+  verbose: 0  # silence CatBoost's default per-iteration logging
+  allow_writing_files: false  # don't litter cwd with a catboost_info/ directory

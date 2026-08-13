@@ -1,22 +1,22 @@
 import numpy as np
 import pandas as pd
 
-from tabbench.engine import XGBoost
+from tabbench.engine import KNN
 
 
 def test_load_reads_params_from_yaml(tmp_path):
-    path = tmp_path / "xgboost.yaml"
-    path.write_text("model: xgboost\nparams:\n  n_estimators: 5\n")
+    path = tmp_path / "knn.yaml"
+    path.write_text("model: knn\nparams:\n  n_neighbors: 3\n")
 
-    model = XGBoost.load(path)
+    model = KNN.load(path)
 
-    assert model.estimator.n_estimators == 5
+    assert model.estimator.n_neighbors == 3
 
 
 def test_fit_predict_roundtrip(tmp_path):
-    path = tmp_path / "xgboost.yaml"
-    path.write_text("model: xgboost\nparams:\n  n_estimators: 5\n")
-    model = XGBoost.load(path)
+    path = tmp_path / "knn.yaml"
+    path.write_text("model: knn\nparams:\n  n_neighbors: 1\n")
+    model = KNN.load(path)
 
     X = pd.DataFrame({"a": [0, 0, 1, 1], "b": [0, 1, 0, 1]})
     y = pd.Series(["low", "low", "high", "high"])

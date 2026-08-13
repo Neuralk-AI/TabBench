@@ -2,7 +2,10 @@ from .dataset import Dataset, load_dataset
 from .evaluate import ClassificationMetrics, ClassificationResults, dump_results, evaluate
 from .model import ClassificationModel
 from .models import (
+    KNN,
     MODEL_REGISTRY,
+    CatBoost,
+    Dummy,
     LightGBM,
     LogisticRegression,
     RandomForest,
@@ -12,10 +15,13 @@ from .models import (
 )
 
 __all__ = [
+    "CatBoost",
     "ClassificationMetrics",
     "ClassificationModel",
     "ClassificationResults",
     "Dataset",
+    "Dummy",
+    "KNN",
     "LightGBM",
     "LogisticRegression",
     "MODEL_REGISTRY",
