@@ -1,4 +1,5 @@
 import importlib
+import math
 
 import numpy as np
 import pandas as pd
@@ -8,6 +9,7 @@ from tabbench.engine import (
     ClassificationMetrics,
     ClassificationResults,
     Dataset,
+    Status,
     dump_results,
     evaluate,
 )
@@ -31,6 +33,16 @@ class FakeModel:
     def predict_proba(self, X):
         n_classes = len(self._classes)
         return np.full((len(X), n_classes), 1 / n_classes)
+
+
+class FitRaisesModel(FakeModel):
+    def fit(self, X, y):
+        raise RuntimeError("boom")
+
+
+class PredictRaisesModel(FakeModel):
+    def predict(self, X):
+        raise RuntimeError("boom")
 
 
 def make_dataset(labels):
@@ -79,6 +91,7 @@ def test_evaluate_returns_metrics_and_predictions():
 
     result = evaluate(FakeModel(), dataset, test_size=0.2, seed=0, stratify=True)
 
+    assert result.status == Status.OK
     assert result.openml_id == 1
     assert result.openml_name == "fake"
     assert isinstance(result.metrics, ClassificationMetrics)
@@ -86,6 +99,28 @@ def test_evaluate_returns_metrics_and_predictions():
     assert 0.0 <= result.metrics.roc_auc <= 1.0
     assert list(result.predictions.columns) == ["y_true", "y_pred", "proba_a", "proba_b"]
     assert len(result.predictions) == 4
+
+
+def test_evaluate_returns_failure_when_fit_raises():
+    dataset = make_dataset(["a", "b"] * 10)
+
+    result = evaluate(FitRaisesModel(), dataset, test_size=0.2, seed=0, stratify=True)
+
+    assert result.status == Status.FAILURE
+    assert result.error_message == "RuntimeError: boom"
+    assert math.isnan(result.metrics.accuracy)
+    assert result.predictions.empty
+
+
+def test_evaluate_returns_failure_when_predict_raises():
+    dataset = make_dataset(["a", "b"] * 10)
+
+    result = evaluate(PredictRaisesModel(), dataset, test_size=0.2, seed=0, stratify=True)
+
+    assert result.status == Status.FAILURE
+    assert result.error_message == "RuntimeError: boom"
+    assert math.isnan(result.metrics.accuracy)
+    assert result.predictions.empty
 
 
 def test_evaluate_computes_macro_roc_auc_for_multiclass_targets():
@@ -114,7 +149,12 @@ def test_dump_results_writes_summary_and_predictions(tmp_path, monkeypatch):
     )
     results = [
         ClassificationResults(
-            openml_id=1, openml_name="fake", metrics=metrics, predictions=predictions
+            openml_id=1,
+            openml_name="fake",
+            status=Status.OK,
+            error_message="",
+            metrics=metrics,
+            predictions=predictions,
         )
     ]
     model_config = {"model": "logistic_regression", "params": {"C": 1.0}}
@@ -131,6 +171,8 @@ def test_dump_results_writes_summary_and_predictions(tmp_path, monkeypatch):
         {
             "openml_id": 1,
             "openml_name": "fake",
+            "status": "ok",
+            "error_message": "",
             "metrics": {
                 "accuracy": 0.9,
                 "roc_auc": 0.95,
@@ -144,3 +186,29 @@ def test_dump_results_writes_summary_and_predictions(tmp_path, monkeypatch):
     ]
     dumped_predictions = pd.read_parquet(run_dir / "1_fake.parquet")
     pd.testing.assert_frame_equal(dumped_predictions, predictions)
+
+
+def test_dump_results_skips_predictions_file_for_non_ok_results(tmp_path, monkeypatch):
+    monkeypatch.setattr(evaluate_module, "OUT_DIR", tmp_path)
+    ok_result = ClassificationResults(
+        openml_id=1,
+        openml_name="fake-ok",
+        status=Status.OK,
+        error_message="",
+        metrics=ClassificationMetrics(
+            accuracy=0.9, roc_auc=0.95, tpr=0.8, fpr=0.1, tnr=0.9, fnr=0.2, mcc=0.7
+        ),
+        predictions=pd.DataFrame({"y_true": ["a"], "y_pred": ["a"]}),
+    )
+    failed_result = ClassificationResults.failure(
+        2, "fake-failed", Status.FAILURE, error_message="RuntimeError: boom"
+    )
+    model_config = {"model": "logistic_regression", "params": {"C": 1.0}}
+
+    run_dir = dump_results([ok_result, failed_result], model_config, tmp_path / "c.yaml")
+
+    summary = yaml.safe_load((run_dir / "summary.yaml").read_text())
+    statuses = {r["openml_id"]: r["status"] for r in summary["results"]}
+    assert statuses == {1: "ok", 2: "failure"}
+    assert (run_dir / "1_fake-ok.parquet").exists()
+    assert not (run_dir / "2_fake-failed.parquet").exists()

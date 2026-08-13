@@ -1,5 +1,11 @@
 from .dataset import Dataset, load_dataset
-from .evaluate import ClassificationMetrics, ClassificationResults, dump_results, evaluate
+from .evaluate import (
+    ClassificationMetrics,
+    ClassificationResults,
+    Status,
+    dump_results,
+    evaluate,
+)
 from .model import ClassificationModel
 from .models import (
     KNN,
@@ -26,6 +32,7 @@ __all__ = [
     "LogisticRegression",
     "MODEL_REGISTRY",
     "RandomForest",
+    "Status",
     "XGBoost",
     "default_config_path",
     "dump_results",

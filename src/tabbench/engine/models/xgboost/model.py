@@ -21,6 +21,10 @@ class XGBoost:
     def classes(self) -> np.ndarray:
         return self.label_encoder.classes_
 
+    @property
+    def requires_cuda(self) -> bool:
+        return False
+
     def fit(self, X: pd.DataFrame, y: pd.Series) -> "XGBoost":
         self.estimator.fit(X, self.label_encoder.fit_transform(y))
         return self

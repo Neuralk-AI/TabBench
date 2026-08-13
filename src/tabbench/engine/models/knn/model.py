@@ -17,6 +17,10 @@ class KNN:
     def classes(self) -> np.ndarray:
         return self.estimator.classes_
 
+    @property
+    def requires_cuda(self) -> bool:
+        return False
+
     def fit(self, X: pd.DataFrame, y: pd.Series) -> "KNN":
         self.estimator.fit(X, y)
         return self

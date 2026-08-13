@@ -7,6 +7,8 @@ import yaml
 from tabbench.constants import DATASETS_FILE
 from tabbench.engine import (
     MODEL_REGISTRY,
+    ClassificationResults,
+    Status,
     default_config_path,
     dump_results,
     evaluate,
@@ -27,7 +29,7 @@ def seed_everything(seed: int) -> None:
     torch.manual_seed(seed)
 
 
-def main():
+def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model",
@@ -53,20 +55,32 @@ def main():
         default=True,
         help="Stratify the train/test split on the target.",
     )
-    args = parser.parse_args()
-    seed_everything(args.seed)
+    return parser.parse_args()
 
-    config_path = default_config_path(args.model)
+
+def main(model: str, test_size: float, seed: int, stratify: bool) -> None:
+    seed_everything(seed)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    config_path = default_config_path(model)
     model_config = yaml.safe_load(config_path.read_text())
     datasets = yaml.safe_load(DATASETS_FILE.read_text())
 
     results = []
     for dataset in datasets:
         ds = load_dataset(dataset)
-        model = load_model(config_path)
-        result = evaluate(
-            model, ds, test_size=args.test_size, seed=args.seed, stratify=args.stratify
-        )
+        loaded_model = load_model(config_path)
+        if loaded_model.requires_cuda and device.type != "cuda":
+            result = ClassificationResults.failure(
+                ds.openml_id,
+                ds.openml_name,
+                Status.WRONG_DEVICE,
+                error_message=f"{model} requires CUDA but resolved device is {device}",
+            )
+        else:
+            result = evaluate(
+                loaded_model, ds, test_size=test_size, seed=seed, stratify=stratify
+            )
         print(
             f"[debug] {result.openml_name}: "
             f"accuracy={result.metrics.accuracy:.4f} roc_auc={result.metrics.roc_auc}"
@@ -77,4 +91,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(**vars(_parse_args()))

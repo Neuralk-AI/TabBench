@@ -1,5 +1,6 @@
 from dataclasses import asdict, dataclass
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 
 import numpy as np
@@ -17,6 +18,14 @@ from tabbench.constants import OUT_DIR
 
 from .dataset import Dataset
 from .model import ClassificationModel
+
+
+class Status(str, Enum):
+    """Outcome of evaluating a model on a dataset."""
+
+    OK = "ok"
+    WRONG_DEVICE = "wrong_device"
+    FAILURE = "failure"
 
 
 @dataclass
@@ -47,10 +56,16 @@ class ClassificationMetrics:
     fnr: float
     mcc: float
 
+    @classmethod
+    def empty(cls) -> "ClassificationMetrics":
+        """Sentinel instance for a ClassificationResults whose status isn't OK."""
+        nan = float("nan")
+        return cls(accuracy=nan, roc_auc=nan, tpr=nan, fpr=nan, tnr=nan, fnr=nan, mcc=nan)
+
 
 @dataclass
 class ClassificationResults:
-    """Metrics and per-row predictions from evaluating a model on a dataset.
+    """Outcome, metrics, and per-row predictions from evaluating a model on a dataset.
 
     Attributes
     ----------
@@ -58,6 +73,11 @@ class ClassificationResults:
         OpenML dataset ID.
     openml_name : str
         OpenML dataset name.
+    status : Status
+        Outcome of the evaluation. metrics and predictions are empty sentinels
+        unless status is Status.OK.
+    error_message : str
+        Description of what went wrong. Empty unless status is not Status.OK.
     metrics : ClassificationMetrics
         Scores on the test split.
     predictions : pd.DataFrame
@@ -67,8 +87,24 @@ class ClassificationResults:
 
     openml_id: int
     openml_name: str
+    status: Status
+    error_message: str
     metrics: ClassificationMetrics
     predictions: pd.DataFrame
+
+    @classmethod
+    def failure(
+        cls, openml_id: int, openml_name: str, status: Status, error_message: str
+    ) -> "ClassificationResults":
+        """Build a non-OK result, with sentinel metrics and predictions."""
+        return cls(
+            openml_id=openml_id,
+            openml_name=openml_name,
+            status=status,
+            error_message=error_message,
+            metrics=ClassificationMetrics.empty(),
+            predictions=pd.DataFrame(),
+        )
 
 
 def evaluate(
@@ -107,19 +143,31 @@ def evaluate(
         stratify=dataset.y if stratify else None,
     )
 
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    y_proba = model.predict_proba(X_test)
-    classes = model.classes
-    metrics = _compute_metrics(y_test, y_pred, y_proba, classes)
+    try:
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        y_proba = model.predict_proba(X_test)
+        classes = model.classes
+        metrics = _compute_metrics(y_test, y_pred, y_proba, classes)
 
-    predictions = pd.DataFrame(y_proba, columns=[f"proba_{label}" for label in classes])
-    predictions.insert(0, "y_pred", y_pred)
-    predictions.insert(0, "y_true", y_test.to_numpy())
+        predictions = pd.DataFrame(
+            y_proba, columns=[f"proba_{label}" for label in classes]
+        )
+        predictions.insert(0, "y_pred", y_pred)
+        predictions.insert(0, "y_true", y_test.to_numpy())
+    except Exception as exc:
+        return ClassificationResults.failure(
+            dataset.openml_id,
+            dataset.openml_name,
+            Status.FAILURE,
+            error_message=f"{type(exc).__name__}: {exc}",
+        )
 
     return ClassificationResults(
         openml_id=dataset.openml_id,
         openml_name=dataset.openml_name,
+        status=Status.OK,
+        error_message="",
         metrics=metrics,
         predictions=predictions,
     )
@@ -160,6 +208,8 @@ def dump_results(
                     {
                         "openml_id": result.openml_id,
                         "openml_name": result.openml_name,
+                        "status": result.status.value,
+                        "error_message": result.error_message,
                         "metrics": asdict(result.metrics),
                     }
                     for result in results
@@ -169,6 +219,8 @@ def dump_results(
         )
     )
     for result in results:
+        if result.status is not Status.OK:
+            continue
         predictions_path = run_dir / f"{result.openml_id}_{result.openml_name}.parquet"
         result.predictions.to_parquet(predictions_path)
 
