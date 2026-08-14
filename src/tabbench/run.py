@@ -113,11 +113,17 @@ def main(model: str, test_size: float, seed: int, stratify: bool) -> None:
 
     # Only check CUDA availability (which needs torch) for models that declare
     # they need it, to avoid clashes with OpenMP used in XGBoost/LightGBM.
-    wrong_device = False
+    wrong_device, device_error = False, ""
     if model_config.requires_cuda:
-        import torch
-
-        wrong_device = not torch.cuda.is_available()
+        try:
+            import torch
+        except ImportError:
+            # Same outcome as a machine with no GPU: the model cannot run here, so
+            # report it per dataset rather than ending a sweep over other models.
+            wrong_device, device_error = True, "torch is not installed"
+        else:
+            if not torch.cuda.is_available():
+                wrong_device, device_error = True, "no CUDA device is available"
 
     results = []
     try:
@@ -127,9 +133,7 @@ def main(model: str, test_size: float, seed: int, stratify: bool) -> None:
                     dataset[YamlKeys.OPENML_ID],
                     dataset[YamlKeys.OPENML_NAME],
                     Status.WRONG_DEVICE,
-                    error_message=(
-                        f"{model} requires CUDA but no CUDA device is available"
-                    ),
+                    error_message=f"{model} requires CUDA but {device_error}",
                 )
             else:
                 result = _run_dataset(dataset, model_config, test_size, seed, stratify)

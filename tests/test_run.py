@@ -1,11 +1,11 @@
 import importlib
 import subprocess
 import sys
+import types
 
 import numpy as np
 import pandas as pd
 import pytest
-import torch
 import yaml
 
 from tabbench.engine import Dataset
@@ -44,6 +44,20 @@ def fake_load_dataset(yaml_dict):
     )
 
 
+def stub_torch(cuda_available):
+    """Stand in for torch, so importing this module doesn't pull the real one.
+
+    torch bundles its own OpenMP runtime, which segfaults on macOS once the one
+    xgboost and lightgbm link against does threaded work in the same process -- and
+    pytest imports every test module into that one process. Stubbing also keeps torch
+    off the list of things the suite needs installed to run at all.
+    """
+    torch = types.ModuleType("torch")
+    torch.cuda = types.SimpleNamespace(is_available=lambda: cuda_available)
+    torch.manual_seed = lambda seed: None
+    return torch
+
+
 def setup_run(tmp_path, monkeypatch, model, cuda_available, requires_cuda):
     datasets_file = tmp_path / "datasets.yaml"
     datasets_file.write_text(
@@ -74,7 +88,7 @@ def setup_run(tmp_path, monkeypatch, model, cuda_available, requires_cuda):
     monkeypatch.setattr(run_module, "load_dataset", fake_load_dataset)
     monkeypatch.setattr(run_module, "resolve_config_path", lambda model_arg: config_path)
     monkeypatch.setattr(run_module, "load_model", lambda config: model)
-    monkeypatch.setattr(torch.cuda, "is_available", lambda: cuda_available)
+    monkeypatch.setitem(sys.modules, "torch", stub_torch(cuda_available))
     monkeypatch.setattr(evaluate_module, "OUT_DIR", tmp_path)
 
 
@@ -113,6 +127,26 @@ def test_main_does_not_load_datasets_when_the_device_is_wrong(tmp_path, monkeypa
     assert summary["results"][0]["openml_id"] == 1
     assert summary["results"][0]["openml_name"] == "fake"
     assert summary["results"][0]["status"] == "wrong_device"
+
+
+def test_main_reports_wrong_device_when_torch_is_not_installed(tmp_path, monkeypatch):
+    """torch is only needed to ask about CUDA, so a CPU-only install must report a
+    CUDA-only model as unrunnable here rather than ending a sweep over the others.
+    """
+    setup_run(
+        tmp_path, monkeypatch, FakeModel(), cuda_available=False, requires_cuda=True
+    )
+    # None in sys.modules makes `import torch` raise ImportError, as if uninstalled.
+    monkeypatch.setitem(sys.modules, "torch", None)
+
+    main(model="dummy", test_size=0.2, seed=0, stratify=True)
+
+    run_dir = next(tmp_path.glob("*_dummy"))
+    summary = yaml.safe_load((run_dir / "summary.yaml").read_text())
+    assert summary["results"][0]["status"] == "wrong_device"
+    assert summary["results"][0]["error_message"] == (
+        "dummy requires CUDA but torch is not installed"
+    )
 
 
 def test_main_reports_ok_status_on_success(tmp_path, monkeypatch):
