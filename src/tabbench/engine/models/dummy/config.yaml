@@ -1,2 +1,2 @@
 model: dummy
-params: {}
+target: sklearn.dummy.DummyClassifier

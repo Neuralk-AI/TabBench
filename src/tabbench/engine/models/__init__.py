@@ -1,23 +1,9 @@
-from .base import MODEL_REGISTRY, default_config_path, load_model
-from .catboost import CatBoost
-from .dummy import Dummy
-from .knn import KNN
-from .lightgbm import LightGBM
-from .logistic_regression import LogisticRegression
-from .random_forest import RandomForest
-from .xgboost import XGBoost
+from .base import available_baselines, load_model, resolve_config_path
 
 __all__ = [
-    "CatBoost",
-    "Dummy",
-    "KNN",
-    "LightGBM",
-    "LogisticRegression",
-    "MODEL_REGISTRY",
-    "RandomForest",
-    "XGBoost",
-    "default_config_path",
+    "available_baselines",
     "load_model",
+    "resolve_config_path",
 ]
 if __all__ != sorted(__all__):
     raise RuntimeError("__all__ is not sorted")

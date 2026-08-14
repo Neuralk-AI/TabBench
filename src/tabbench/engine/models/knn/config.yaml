@@ -1,3 +1,2 @@
 model: knn
-params:
-  n_neighbors: 5
+target: sklearn.neighbors.KNeighborsClassifier

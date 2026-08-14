@@ -20,6 +20,26 @@ A tabular machine learning benchmark for industrial tasks.
 pip install tabbench
 ```
 
+## Benchmarking your own model
+
+`--model` takes either the name of a packaged baseline or a path to a yaml config.
+A config names the class to instantiate and the parameters to pass it:
+
+```yaml
+model: my_classifier
+target: my_package.models.MyClassifier
+params:
+  learning_rate: 0.01
+```
+
+`target` can point at any importable class following scikit-learn's classifier
+contract — `fit(X, y)`, `predict(X)`, `predict_proba(X)`, and `classes_`. Most
+tabular models already do, so no adapter is usually needed and nothing has to be
+added to this repository.
+
+Note that a config is executable: TabBench imports `target` and calls it. Treat one
+from an untrusted source as you would a Python script.
+
 ## Citing TabBench
 
 ```bibtex
