@@ -1,5 +1,3 @@
 model: random_forest
 target: sklearn.ensemble.RandomForestClassifier
 requires_cuda: false
-params:
-  n_estimators: 100
