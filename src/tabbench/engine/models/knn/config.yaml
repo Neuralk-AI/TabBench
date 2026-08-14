@@ -1,4 +1,4 @@
 model: knn
-target: tabbench.engine.models.knn.model.KNN
+target: sklearn.neighbors.KNeighborsClassifier
 params:
   n_neighbors: 5

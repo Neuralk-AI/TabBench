@@ -1,4 +1,4 @@
 model: random_forest
-target: tabbench.engine.models.random_forest.model.RandomForest
+target: sklearn.ensemble.RandomForestClassifier
 params:
   n_estimators: 100
