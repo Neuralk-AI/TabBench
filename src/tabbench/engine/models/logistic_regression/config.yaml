@@ -1,5 +1,2 @@
 model: logistic_regression
-target: tabbench.engine.models.logistic_regression.model.LogisticRegression
-params:
-  C: 1.0
-  max_iter: 1000
+target: sklearn.linear_model.LogisticRegression

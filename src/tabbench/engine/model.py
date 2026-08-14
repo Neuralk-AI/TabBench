@@ -8,16 +8,33 @@ import yaml
 
 
 class ClassificationModel(Protocol):
-    """Classification model interface benchmarked by TabBench.
+    """Contract a model must satisfy to be benchmarked by TabBench.
 
-    Constructed as `cls(**params)` from a ModelConfig's params -- no separate
-    loading contract needed.
+    This is scikit-learn's classifier contract -- BaseEstimator plus
+    ClassifierMixin -- narrowed to the members TabBench calls. An estimator
+    already following it satisfies this protocol without an adapter.
+
+    Instances are built as cls(**params) from a ModelConfig's params.
+
+    Methods
+    -------
+    fit(X, y)
+        Fit on a feature frame and a target series. Returns self.
+    predict(X)
+        Predicted labels, shape (n_samples,), drawn from the values seen in y.
+    predict_proba(X)
+        Class probabilities, shape (n_samples, n_classes), rows summing to 1,
+        columns ordered to match classes_.
+
+    Attributes
+    ----------
+    classes_ : np.ndarray
+        Class labels seen during fit, ascending. Set by fit -- the trailing
+        underscore is scikit-learn's convention for a fitted attribute.
     """
 
     @property
-    def classes(self) -> np.ndarray:
-        """Class labels, ascending, in the column order used by predict_proba."""
-        ...
+    def classes_(self) -> np.ndarray: ...
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> "ClassificationModel": ...
 
@@ -38,8 +55,32 @@ class ModelConfig:
 
     @classmethod
     def load(cls, path: Path) -> "ModelConfig":
-        """Parse a model's yaml config file."""
-        yaml_dict = yaml.safe_load(path.read_text())
+        """Parse a model's yaml config file.
+
+        Raises
+        ------
+        RuntimeError
+            If the file isn't valid yaml, isn't a mapping, or is missing a
+            required key. Hand-written configs are a supported entry point, so
+            every failure names the offending file.
+        """
+        try:
+            yaml_dict = yaml.safe_load(path.read_text())
+        except yaml.YAMLError as error:
+            raise RuntimeError(f"Invalid model config {path}: {error}") from None
+
+        if not isinstance(yaml_dict, dict):
+            raise RuntimeError(
+                f"Invalid model config {path}: expected a yaml mapping, "
+                f"got {type(yaml_dict).__name__}"
+            )
+
+        missing_keys = [key for key in ("model", "target") if key not in yaml_dict]
+        if missing_keys:
+            raise RuntimeError(
+                f"Invalid model config {path}: missing key(s) {missing_keys}"
+            )
+
         return cls(
             name=yaml_dict["model"],
             target=yaml_dict["target"],
