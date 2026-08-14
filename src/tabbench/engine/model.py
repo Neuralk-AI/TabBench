@@ -52,7 +52,8 @@ class ModelConfig:
     name: str
         Model display name.
     target: str
-        Model dotted path (e.g., engine.models.lightgbm.LightGBM).
+        Dotted path to the class to instantiate
+        (e.g. sklearn.linear_model.LogisticRegression).
     requires_cuda: bool
         Whether a CUDA device is required to benchmark this model.
     params: dict[str, Any]
