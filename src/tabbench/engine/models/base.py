@@ -45,7 +45,6 @@ def resolve_config_path(model_arg: str) -> Path:
     return packaged_path
 
 
-
 def load_model(config: ModelConfig) -> ClassificationModel:
     """Instantiate the model described by a ModelConfig, forwarding its params.
 
