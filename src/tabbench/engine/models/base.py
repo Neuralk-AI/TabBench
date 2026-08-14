@@ -4,6 +4,7 @@ from pathlib import Path
 from tabbench.engine.model import ClassificationModel, ModelConfig
 
 _MODELS_DIR = Path(__file__).parent
+_CONFIG_SUFFIXES = frozenset({".yaml", ".yml"})
 
 
 def available_baselines() -> list[str]:
@@ -14,21 +15,30 @@ def available_baselines() -> list[str]:
 def resolve_config_path(model_arg: str) -> Path:
     """Resolve a --model argument to a config.yaml path.
 
-    model_arg is either a path to a yaml config (ending in ".yaml"), or the name
-    of a packaged baseline, resolved by convention to models/<name>/config.yaml.
+    model_arg is either a path to a yaml config, or the name of a packaged
+    baseline, resolved by convention to models/<name>/config.yaml. It is read as a
+    path when it carries a yaml suffix or a directory component, so that a
+    mistyped path reports itself as a missing file rather than an unknown
+    baseline.
+
+    Raises
+    ------
+    RuntimeError
+        If model_arg names neither an existing config file nor a packaged baseline.
     """
-    if model_arg.endswith(".yaml"):
-        path = Path(model_arg)
+    path = Path(model_arg)
+    if path.suffix in _CONFIG_SUFFIXES or path.parent != Path():
         if not path.is_file():
             raise RuntimeError(f"Config file not found: {model_arg}")
         return path
-    path = _MODELS_DIR / model_arg / "config.yaml"
-    if not path.is_file():
+
+    packaged_path = _MODELS_DIR / model_arg / "config.yaml"
+    if not packaged_path.is_file():
         raise RuntimeError(
-            f"Unknown baseline model {model_arg!r}; "
-            f"expected one of {available_baselines()}"
+            f"Unknown baseline model {model_arg!r}; expected one of "
+            f"{available_baselines()}, or a path to a yaml config"
         )
-    return path
+    return packaged_path
 
 
 # ClassificationModel's methods. classes_ is deliberately excluded: it is a fitted

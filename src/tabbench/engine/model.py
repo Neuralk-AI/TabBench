@@ -55,8 +55,32 @@ class ModelConfig:
 
     @classmethod
     def load(cls, path: Path) -> "ModelConfig":
-        """Parse a model's yaml config file."""
-        yaml_dict = yaml.safe_load(path.read_text())
+        """Parse a model's yaml config file.
+
+        Raises
+        ------
+        RuntimeError
+            If the file isn't valid yaml, isn't a mapping, or is missing a
+            required key. Hand-written configs are a supported entry point, so
+            every failure names the offending file.
+        """
+        try:
+            yaml_dict = yaml.safe_load(path.read_text())
+        except yaml.YAMLError as error:
+            raise RuntimeError(f"Invalid model config {path}: {error}") from None
+
+        if not isinstance(yaml_dict, dict):
+            raise RuntimeError(
+                f"Invalid model config {path}: expected a yaml mapping, "
+                f"got {type(yaml_dict).__name__}"
+            )
+
+        missing_keys = [key for key in ("model", "target") if key not in yaml_dict]
+        if missing_keys:
+            raise RuntimeError(
+                f"Invalid model config {path}: missing key(s) {missing_keys}"
+            )
+
         return cls(
             name=yaml_dict["model"],
             target=yaml_dict["target"],

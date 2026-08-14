@@ -29,6 +29,33 @@ def test_model_config_load_parses_yaml_fields(tmp_path):
     assert config.params == {"C": 0.5}
 
 
+@pytest.mark.parametrize(
+    ("contents", "expected"),
+    [
+        pytest.param("", "expected a yaml mapping", id="empty_file"),
+        pytest.param("- a\n- b\n", "expected a yaml mapping", id="yaml_list"),
+        pytest.param("model: m\n", "missing key(s) ['target']", id="missing_target"),
+        pytest.param("target: t\n", "missing key(s) ['model']", id="missing_model"),
+        pytest.param("model: [\n", "Invalid model config", id="malformed_yaml"),
+    ],
+)
+def test_model_config_load_raises_runtime_error_naming_the_file(
+    tmp_path, contents, expected
+):
+    """Hand-written configs are a supported entry point, so a malformed one must say
+    what is wrong and which file it is, not surface a bare KeyError or TypeError.
+    """
+    path = tmp_path / "broken.yaml"
+    path.write_text(contents)
+
+    with pytest.raises(RuntimeError) as excinfo:
+        ModelConfig.load(path)
+
+    message = str(excinfo.value)
+    assert str(path) in message
+    assert expected in message
+
+
 def test_model_config_load_defaults_params(tmp_path):
     path = tmp_path / "minimal.yaml"
     path.write_text("model: minimal\ntarget: some.module.Class\n")
@@ -154,6 +181,27 @@ def test_resolve_config_path_raises_for_missing_yaml_file(tmp_path):
 
     with pytest.raises(RuntimeError, match="does_not_exist.yaml"):
         resolve_config_path(str(missing))
+
+
+@pytest.mark.parametrize("suffix", [".yaml", ".yml"])
+def test_resolve_config_path_accepts_either_yaml_suffix(tmp_path, suffix):
+    custom = tmp_path / f"custom{suffix}"
+    custom.write_text("model: custom\ntarget: some.module.Class\n")
+
+    assert resolve_config_path(str(custom)) == custom
+
+
+@pytest.mark.parametrize(
+    "model_arg",
+    ["missing.yaml", "missing.yml", "configs/missing"],
+    ids=["yaml_suffix", "yml_suffix", "directory_component"],
+)
+def test_resolve_config_path_reports_a_path_like_argument_as_a_missing_file(model_arg):
+    """A mistyped path must not be reported as an unknown baseline: anything
+    carrying a yaml suffix or a directory component is read as a path.
+    """
+    with pytest.raises(RuntimeError, match="Config file not found"):
+        resolve_config_path(model_arg)
 
 
 def test_available_baselines_all_resolve_to_a_packaged_yaml():

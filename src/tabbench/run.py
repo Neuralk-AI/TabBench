@@ -17,11 +17,25 @@ from tabbench.engine import (
 )
 
 
+def _model(model_arg: str) -> str:
+    """Check --model resolves, so a typo is an argparse error and not a traceback.
+
+    Returns model_arg unchanged rather than the resolved path, to keep main()
+    callable with a plain baseline name.
+    """
+    try:
+        resolve_config_path(model_arg)
+    except RuntimeError as error:
+        raise argparse.ArgumentTypeError(str(error)) from None
+    return model_arg
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model",
         required=True,
+        type=_model,
         help=(
             "Name of a packaged baseline (" + ", ".join(available_baselines()) + ") "
             "or a path to a custom model's yaml config."
