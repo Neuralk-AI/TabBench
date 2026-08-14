@@ -1,7 +1,10 @@
 import importlib
+import subprocess
+import sys
 
 import numpy as np
 import pandas as pd
+import pytest
 import torch
 import yaml
 
@@ -14,7 +17,7 @@ evaluate_module = importlib.import_module("tabbench.engine.evaluate")
 
 class FakeModel:
     @property
-    def classes(self):
+    def classes_(self):
         return self._classes
 
     def fit(self, X, y):
@@ -101,3 +104,34 @@ def test_main_reports_ok_status_on_success(tmp_path, monkeypatch):
     summary = yaml.safe_load((run_dir / "summary.yaml").read_text())
     assert summary["results"][0]["status"] == "ok"
     assert list(run_dir.glob("*.parquet"))
+
+
+@pytest.mark.parametrize(
+    ("model_arg", "expected"),
+    [
+        pytest.param("xgbost", "Unknown baseline model 'xgbost'", id="typo_in_baseline"),
+        pytest.param("missing.yaml", "Config file not found", id="missing_config_file"),
+    ],
+)
+def test_unresolvable_model_exits_cleanly_without_a_traceback(model_arg, expected):
+    """--model is validated while arguments are parsed, so an unusable value is an
+    argparse error rather than a traceback raised part-way into a run.
+    """
+    result = subprocess.run(
+        [sys.executable, "-m", "tabbench.run", "--model", model_arg],
+        capture_output=True,
+    )
+
+    stderr = result.stderr.decode()
+    assert result.returncode == 2  # argparse's exit code for a usage error
+    assert "Traceback" not in stderr
+    assert expected in stderr
+
+
+def test_model_help_lists_the_packaged_baselines():
+    result = subprocess.run(
+        [sys.executable, "-m", "tabbench.run", "--help"], capture_output=True
+    )
+
+    assert result.returncode == 0
+    assert "xgboost" in result.stdout.decode()

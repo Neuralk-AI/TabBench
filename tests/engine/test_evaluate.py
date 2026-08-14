@@ -22,7 +22,7 @@ _compute_metrics = evaluate_module._compute_metrics
 
 class FakeModel:
     @property
-    def classes(self):
+    def classes_(self):
         return self._classes
 
     def fit(self, X, y):
@@ -161,7 +161,7 @@ def test_dump_results_writes_summary_and_predictions(tmp_path, monkeypatch):
     ]
     model_config = ModelConfig(
         name="logistic_regression",
-        target="tabbench.engine.models.logistic_regression.model.LogisticRegression",
+        target="sklearn.linear_model.LogisticRegression",
         requires_cuda=False,
         params={"C": 1.0},
     )

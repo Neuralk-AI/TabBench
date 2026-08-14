@@ -4,6 +4,11 @@ from pathlib import Path
 from tabbench.engine.model import ClassificationModel, ModelConfig
 
 _MODELS_DIR = Path(__file__).parent
+_CONFIG_SUFFIXES = frozenset({".yaml", ".yml"})
+# ClassificationModel's methods. classes_ is deliberately excluded: it is a fitted
+# attribute, absent from a freshly constructed estimator, so requiring it here would
+# reject every conforming model.
+_REQUIRED_METHODS = ("fit", "predict", "predict_proba")
 
 
 def available_baselines() -> list[str]:
@@ -14,25 +19,50 @@ def available_baselines() -> list[str]:
 def resolve_config_path(model_arg: str) -> Path:
     """Resolve a --model argument to a config.yaml path.
 
-    model_arg is either a path to a yaml config (ending in ".yaml"), or the name
-    of a packaged baseline, resolved by convention to models/<name>/config.yaml.
+    model_arg is either a path to a yaml config, or the name of a packaged
+    baseline, resolved by convention to models/<name>/config.yaml. It is read as a
+    path when it carries a yaml suffix or a directory component, so that a
+    mistyped path reports itself as a missing file rather than an unknown
+    baseline.
+
+    Raises
+    ------
+    RuntimeError
+        If model_arg names neither an existing config file nor a packaged baseline.
     """
-    if model_arg.endswith(".yaml"):
-        path = Path(model_arg)
+    path = Path(model_arg)
+    if path.suffix in _CONFIG_SUFFIXES or path.parent != Path():
         if not path.is_file():
             raise RuntimeError(f"Config file not found: {model_arg}")
         return path
-    path = _MODELS_DIR / model_arg / "config.yaml"
-    if not path.is_file():
+
+    packaged_path = _MODELS_DIR / model_arg / "config.yaml"
+    if not packaged_path.is_file():
         raise RuntimeError(
-            f"Unknown baseline model {model_arg!r}; "
-            f"expected one of {available_baselines()}"
+            f"Unknown baseline model {model_arg!r}; expected one of "
+            f"{available_baselines()}, or a path to a yaml config"
         )
-    return path
+    return packaged_path
 
 
 def load_model(config: ModelConfig) -> ClassificationModel:
-    """Instantiate the model described by a ModelConfig, forwarding its params."""
+    """Instantiate the model described by a ModelConfig, forwarding its params.
+
+    Raises
+    ------
+    RuntimeError
+        If target resolves to something that isn't a ClassificationModel.
+    """
     module_path, class_name = config.target.rsplit(".", 1)
     model_cls = getattr(importlib.import_module(module_path), class_name)
-    return model_cls(**config.params)
+    model = model_cls(**config.params)
+
+    missing = [
+        name for name in _REQUIRED_METHODS if not callable(getattr(model, name, None))
+    ]
+    if missing:
+        raise RuntimeError(
+            f"Target {config.target!r} is not a ClassificationModel: "
+            f"no {', '.join(missing)}"
+        )
+    return model
