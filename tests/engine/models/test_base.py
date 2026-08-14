@@ -1,3 +1,4 @@
+import functools
 import subprocess
 import sys
 
@@ -221,30 +222,49 @@ def test_packaged_baseline_name_matches_its_directory(name):
     assert ModelConfig.load(resolve_config_path(name)).name == name
 
 
-@pytest.mark.parametrize("name", available_baselines())
-def test_packaged_baseline_satisfies_the_classification_contract(name):
-    """Every packaged target must honour ClassificationModel on a string-labelled
-    multiclass target, whether it is one of ours or an upstream class pointed at
-    directly. This is what lets most baselines carry no TabBench code at all.
-    """
+# --- the ClassificationModel contract, one clause per test -------------------
+# Every packaged target must honour the protocol, whether it is one of ours or an
+# upstream class pointed at directly -- that is what lets most baselines carry no
+# TabBench code at all. The clauses get a test each so a baseline that breaks
+# several of them reports several failures rather than only the first.
+
+LABELS = ["low", "medium", "high"]
+N_ROWS = 15
+X = pd.DataFrame({"a": np.arange(N_ROWS) % 3, "b": np.arange(N_ROWS) % 5})
+Y = pd.Series(LABELS * (N_ROWS // len(LABELS)))
+
+
+@functools.lru_cache(maxsize=None)
+def fitted_baseline(name):
     model = load_model(ModelConfig.load(resolve_config_path(name)))
+    model.fit(X, Y)
+    return model
 
-    n_rows, labels = 15, ["low", "medium", "high"]
-    X = pd.DataFrame({"a": np.arange(n_rows) % 3, "b": np.arange(n_rows) % 5})
-    y = pd.Series(labels * (n_rows // len(labels)))
-    model.fit(X, y)
 
-    # classes_ : original labels, ascending
-    assert list(model.classes_) == sorted(labels)
+@pytest.mark.parametrize("name", available_baselines())
+def test_packaged_baseline_exposes_the_original_labels_ascending(name):
+    assert list(fitted_baseline(name).classes_) == sorted(LABELS)
 
-    # predict : shape (n,), values drawn from the original labels
-    predictions = model.predict(X)
-    assert predictions.shape == (n_rows,)
-    assert set(predictions) <= set(labels)
 
-    # predict_proba : shape (n, n_classes), rows summing to 1, columns in classes_ order
-    probabilities = model.predict_proba(X)
-    assert probabilities.shape == (n_rows, len(labels))
+@pytest.mark.parametrize("name", available_baselines())
+def test_packaged_baseline_predicts_one_original_label_per_row(name):
+    predictions = fitted_baseline(name).predict(X)
+
+    assert predictions.shape == (N_ROWS,)
+    assert set(predictions) <= set(LABELS)
+
+
+@pytest.mark.parametrize("name", available_baselines())
+def test_packaged_baseline_scores_one_probability_column_per_class(name):
+    probabilities = fitted_baseline(name).predict_proba(X)
+
+    assert probabilities.shape == (N_ROWS, len(LABELS))
+
+
+@pytest.mark.parametrize("name", available_baselines())
+def test_packaged_baseline_probability_rows_sum_to_one(name):
+    probabilities = fitted_baseline(name).predict_proba(X)
+
     assert np.allclose(probabilities.sum(axis=1), 1.0)
 
 

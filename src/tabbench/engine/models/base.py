@@ -5,6 +5,10 @@ from tabbench.engine.model import ClassificationModel, ModelConfig
 
 _MODELS_DIR = Path(__file__).parent
 _CONFIG_SUFFIXES = frozenset({".yaml", ".yml"})
+# ClassificationModel's methods. classes_ is deliberately excluded: it is a fitted
+# attribute, absent from a freshly constructed estimator, so requiring it here would
+# reject every conforming model.
+_REQUIRED_METHODS = ("fit", "predict", "predict_proba")
 
 
 def available_baselines() -> list[str]:
@@ -40,11 +44,6 @@ def resolve_config_path(model_arg: str) -> Path:
         )
     return packaged_path
 
-
-# ClassificationModel's methods. classes_ is deliberately excluded: it is a fitted
-# attribute, absent from a freshly constructed estimator, so requiring it here would
-# reject every conforming model.
-_REQUIRED_METHODS = ("fit", "predict", "predict_proba")
 
 
 def load_model(config: ModelConfig) -> ClassificationModel:
