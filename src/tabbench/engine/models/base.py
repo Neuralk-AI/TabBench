@@ -31,8 +31,30 @@ def resolve_config_path(model_arg: str) -> Path:
     return path
 
 
+# ClassificationModel's methods. classes_ is deliberately excluded: it is a fitted
+# attribute, absent from a freshly constructed estimator, so requiring it here would
+# reject every conforming model.
+_REQUIRED_METHODS = ("fit", "predict", "predict_proba")
+
+
 def load_model(config: ModelConfig) -> ClassificationModel:
-    """Instantiate the model described by a ModelConfig, forwarding its params."""
+    """Instantiate the model described by a ModelConfig, forwarding its params.
+
+    Raises
+    ------
+    RuntimeError
+        If target resolves to something that isn't a ClassificationModel.
+    """
     module_path, class_name = config.target.rsplit(".", 1)
     model_cls = getattr(importlib.import_module(module_path), class_name)
-    return model_cls(**config.params)
+    model = model_cls(**config.params)
+
+    missing = [
+        name for name in _REQUIRED_METHODS if not callable(getattr(model, name, None))
+    ]
+    if missing:
+        raise RuntimeError(
+            f"Target {config.target!r} is not a ClassificationModel: "
+            f"no {', '.join(missing)}"
+        )
+    return model

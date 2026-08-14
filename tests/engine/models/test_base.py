@@ -51,6 +51,74 @@ def test_load_model_resolves_target_and_forwards_params():
     assert model.C == 0.5
 
 
+@pytest.mark.parametrize(
+    ("target", "params", "expected_missing"),
+    [
+        pytest.param(
+            "pathlib.Path",
+            {},
+            ["fit", "predict", "predict_proba"],
+            id="not_an_estimator",
+        ),
+        pytest.param(
+            "sklearn.linear_model.LinearRegression",
+            {},
+            ["predict_proba"],
+            id="regressor",
+        ),
+        pytest.param(
+            "sklearn.svm.SVC",
+            {},
+            ["predict_proba"],
+            id="classifier_that_cannot_produce_probabilities",
+        ),
+    ],
+)
+def test_load_model_raises_when_target_is_not_a_classification_model(
+    target, params, expected_missing
+):
+    """The mistakes a free-text dotted path invites: something that isn't an
+    estimator at all, a regressor reached by picking the wrong class from the right
+    module, and a classifier that cannot score probabilities as configured.
+    """
+    config = ModelConfig(name="wrong", target=target, params=params)
+
+    with pytest.raises(RuntimeError) as excinfo:
+        load_model(config)
+
+    message = str(excinfo.value)
+    assert target in message
+    # the exact list, so a partially conforming target isn't reported as wholly broken
+    assert f"no {', '.join(expected_missing)}" in message
+
+
+def test_load_model_accepts_svc_once_it_can_produce_probabilities():
+    """SVC keeps predict_proba behind an available_if descriptor, so it reads as
+    absent until probability=True. Rejecting the default and accepting this makes it
+    a params mistake to fix rather than an unsupported model.
+    """
+    config = ModelConfig(
+        name="svc", target="sklearn.svm.SVC", params={"probability": True}
+    )
+
+    assert callable(load_model(config).predict_proba)
+
+
+def test_load_model_accepts_a_target_whose_classes_is_not_set_until_fit():
+    """classes_ only exists after fit(), so load-time validation must not require it
+    -- checking for it here would reject every conforming estimator.
+    """
+    config = ModelConfig(
+        name="logistic_regression",
+        target="sklearn.linear_model.LogisticRegression",
+        params={},
+    )
+
+    model = load_model(config)
+
+    assert not hasattr(model, "classes_")
+
+
 def test_load_model_raises_on_unresolvable_target():
     config = ModelConfig(
         name="broken",
