@@ -12,9 +12,9 @@ class XGBoost:
     most OpenML classification datasets use need encoding before fit and decoding
     after predict.
 
-    XGBClassifier.fit() reads back self.classes_ and validates it against the y it was handed, 
-    so a subclass overriding classes_ to expose the original labels makes the parent reject its
-    own input.
+    XGBClassifier.fit() reads back self.classes_ and validates it against the y it
+    was handed, so a subclass overriding classes_ to expose the original labels
+    makes the parent reject its own input.
     """
 
     def __init__(self, **params) -> None:

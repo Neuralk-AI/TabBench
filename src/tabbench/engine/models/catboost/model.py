@@ -4,8 +4,7 @@ from catboost import CatBoostClassifier
 
 
 class CatBoost(CatBoostClassifier):
-    """CatBoostClassifier, with its multiclass predict() reshaped to scikit-learn's.
-    """
+    """CatBoostClassifier, with its multiclass predict() reshaped to scikit-learn's."""
 
     def predict(self, X: pd.DataFrame, **kwargs) -> np.ndarray:
         # For multiclass targets, CatBoost's predict() returns shape (n, 1) instead of

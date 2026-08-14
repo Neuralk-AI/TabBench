@@ -1,4 +1,2 @@
 model: xgboost
 target: tabbench.engine.models.xgboost.model.XGBoost
-params:
-  n_estimators: 100
