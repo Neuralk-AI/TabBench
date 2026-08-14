@@ -5,7 +5,7 @@ import sys
 import numpy as np
 import yaml
 
-from tabbench.constants import DATASETS_FILE
+from tabbench.constants import DATASETS_FILE, YamlKeys
 from tabbench.engine import (
     ClassificationResults,
     ModelConfig,
@@ -82,15 +82,15 @@ def main(model: str, test_size: float, seed: int, stratify: bool) -> None:
 
     results = []
     for dataset in datasets:
-        ds = load_dataset(dataset)
         if wrong_device:
             result = ClassificationResults.failure(
-                ds.openml_id,
-                ds.openml_name,
+                dataset[YamlKeys.OPENML_ID],
+                dataset[YamlKeys.OPENML_NAME],
                 Status.WRONG_DEVICE,
                 error_message=f"{model} requires CUDA but no CUDA device is available",
             )
         else:
+            ds = load_dataset(dataset)
             loaded_model = load_model(model_config)
             # Seed torch's RNG here only if torch has been imported by the model.
             torch = sys.modules.get("torch")

@@ -93,6 +93,28 @@ def test_main_reports_wrong_device_without_evaluating(tmp_path, monkeypatch):
     assert not list(run_dir.glob("*.parquet"))
 
 
+def test_main_does_not_load_datasets_when_the_device_is_wrong(tmp_path, monkeypatch):
+    """A run that cannot execute must not still fetch every dataset from OpenML. The
+    failure record needs only the id and name, which the yaml entry already carries.
+    """
+    setup_run(
+        tmp_path, monkeypatch, FakeModel(), cuda_available=False, requires_cuda=True
+    )
+
+    def fail_if_called(yaml_dict):
+        raise AssertionError("load_dataset must not be called on the wrong device")
+
+    monkeypatch.setattr(run_module, "load_dataset", fail_if_called)
+
+    main(model="dummy", test_size=0.2, seed=0, stratify=True)
+
+    run_dir = next(tmp_path.glob("*_dummy"))
+    summary = yaml.safe_load((run_dir / "summary.yaml").read_text())
+    assert summary["results"][0]["openml_id"] == 1
+    assert summary["results"][0]["openml_name"] == "fake"
+    assert summary["results"][0]["status"] == "wrong_device"
+
+
 def test_main_reports_ok_status_on_success(tmp_path, monkeypatch):
     setup_run(
         tmp_path, monkeypatch, FakeModel(), cuda_available=False, requires_cuda=False
