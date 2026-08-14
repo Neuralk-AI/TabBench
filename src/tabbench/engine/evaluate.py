@@ -147,7 +147,7 @@ def evaluate(
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
         y_proba = model.predict_proba(X_test)
-        classes = model.classes
+        classes = model.classes_
         metrics = _compute_metrics(y_test, y_pred, y_proba, classes)
 
         predictions = pd.DataFrame(

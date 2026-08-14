@@ -1,5 +1,5 @@
 model: knn
-target: tabbench.engine.models.knn.model.KNN
+target: sklearn.neighbors.KNeighborsClassifier
 requires_cuda: false
 params:
   n_neighbors: 5

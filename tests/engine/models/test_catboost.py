@@ -4,10 +4,10 @@ import pandas as pd
 from tabbench.engine.models.catboost import CatBoost
 
 
-def test_init_forwards_params_to_estimator():
+def test_init_forwards_params_to_inherited_constructor():
     model = CatBoost(iterations=5, verbose=0, allow_writing_files=False)
 
-    assert model.estimator.get_params()["iterations"] == 5
+    assert model.get_params()["iterations"] == 5
 
 
 def test_fit_predict_roundtrip():

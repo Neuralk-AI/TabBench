@@ -1,5 +1,5 @@
 model: logistic_regression
-target: tabbench.engine.models.logistic_regression.model.LogisticRegression
+target: sklearn.linear_model.LogisticRegression
 requires_cuda: false
 params:
   C: 1.0
