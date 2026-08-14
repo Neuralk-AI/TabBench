@@ -128,6 +128,100 @@ def test_main_reports_ok_status_on_success(tmp_path, monkeypatch):
     assert list(run_dir.glob("*.parquet"))
 
 
+def setup_multi_dataset_run(tmp_path, monkeypatch, load_dataset, n=3):
+    """A run over n datasets, with load_dataset supplied by the caller."""
+    setup_run(
+        tmp_path, monkeypatch, FakeModel(), cuda_available=False, requires_cuda=False
+    )
+    datasets_file = tmp_path / "datasets.yaml"
+    datasets_file.write_text(
+        yaml.dump(
+            [
+                {
+                    "openml_id": i,
+                    "openml_name": f"ds{i}",
+                    "description": "fake dataset",
+                    "task": "classification",
+                    "target": "label",
+                }
+                for i in range(1, n + 1)
+            ]
+        )
+    )
+    monkeypatch.setattr(run_module, "DATASETS_FILE", datasets_file)
+    monkeypatch.setattr(run_module, "load_dataset", load_dataset)
+
+
+def read_results(tmp_path):
+    run_dir = next(tmp_path.glob("*_dummy"))
+    summary = yaml.safe_load((run_dir / "summary.yaml").read_text())
+    return run_dir, {r["openml_id"]: r for r in summary["results"]}
+
+
+def test_main_records_an_unreachable_dataset_and_keeps_going(tmp_path, monkeypatch):
+    """A dataset that cannot be fetched is the likeliest failure in a long sweep, and
+    it must not take the datasets around it down with it.
+    """
+
+    def load_dataset(entry):
+        if entry["openml_id"] == 2:
+            raise ConnectionError("openml.org timed out")
+        return fake_load_dataset(entry)
+
+    setup_multi_dataset_run(tmp_path, monkeypatch, load_dataset)
+
+    main(model="dummy", test_size=0.5, seed=0, stratify=False)
+
+    _, results = read_results(tmp_path)
+    assert [results[i]["status"] for i in (1, 2, 3)] == ["ok", "failure", "ok"]
+    assert (
+        results[2]["error_message"]
+        == "load_dataset: ConnectionError: openml.org timed out"
+    )
+
+
+def test_main_records_the_stage_a_failure_happened_at(tmp_path, monkeypatch):
+    """The stage separates a model that dislikes one dataset from an engine bug, which
+    fails at the same stage for every dataset.
+    """
+
+    class FitRaises(FakeModel):
+        def fit(self, X, y):
+            raise RuntimeError("boom")
+
+    setup_multi_dataset_run(tmp_path, monkeypatch, fake_load_dataset, n=1)
+    monkeypatch.setattr(run_module, "load_model", lambda config: FitRaises())
+
+    main(model="dummy", test_size=0.5, seed=0, stratify=False)
+
+    _, results = read_results(tmp_path)
+    assert results[1]["status"] == "failure"
+    assert results[1]["error_message"] == "evaluate: RuntimeError: boom"
+
+
+def test_main_writes_completed_results_when_the_sweep_is_interrupted(
+    tmp_path, monkeypatch
+):
+    """KeyboardInterrupt is deliberately not caught per dataset, so it is what proves
+    finished work still reaches disk when a long run is cut short.
+    """
+
+    def load_dataset(entry):
+        if entry["openml_id"] == 2:
+            raise KeyboardInterrupt
+        return fake_load_dataset(entry)
+
+    setup_multi_dataset_run(tmp_path, monkeypatch, load_dataset)
+
+    with pytest.raises(KeyboardInterrupt):
+        main(model="dummy", test_size=0.5, seed=0, stratify=False)
+
+    run_dir, results = read_results(tmp_path)
+    assert list(results) == [1]  # dataset 1 finished before the interrupt
+    assert results[1]["status"] == "ok"
+    assert (run_dir / "1_ds1.parquet").exists()
+
+
 @pytest.mark.parametrize(
     ("model_arg", "expected"),
     [

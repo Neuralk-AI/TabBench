@@ -1,6 +1,7 @@
 import argparse
 import random
 import sys
+import traceback
 
 import numpy as np
 import yaml
@@ -64,6 +65,44 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _run_dataset(
+    dataset: dict,
+    model_config: ModelConfig,
+    test_size: float,
+    seed: int,
+    stratify: bool,
+) -> ClassificationResults:
+    """Evaluate one dataset, or record what stopped it.
+
+    Failures are recorded rather than raised so that one unreachable dataset or one
+    model that dislikes one target does not end a sweep. The stage that failed is
+    reported because an engine bug fails at the same stage on every dataset, which a
+    bare message would make indistinguishable from many unrelated model failures. The
+    traceback still reaches stderr, so a recorded failure is never a silent one.
+    """
+    stage = "load_dataset"
+    try:
+        ds = load_dataset(dataset)
+        stage = "load_model"
+        loaded_model = load_model(model_config)
+        # Seed torch's RNG here only if torch has been imported by the model.
+        torch = sys.modules.get("torch")
+        if torch is not None:
+            torch.manual_seed(seed)
+        stage = "evaluate"
+        return evaluate(
+            loaded_model, ds, test_size=test_size, seed=seed, stratify=stratify
+        )
+    except Exception as exc:
+        traceback.print_exc()
+        return ClassificationResults.failure(
+            dataset[YamlKeys.OPENML_ID],
+            dataset[YamlKeys.OPENML_NAME],
+            Status.FAILURE,
+            error_message=f"{stage}: {type(exc).__name__}: {exc}",
+        )
+
+
 def main(model: str, test_size: float, seed: int, stratify: bool) -> None:
     random.seed(seed)
     np.random.seed(seed)
@@ -81,31 +120,26 @@ def main(model: str, test_size: float, seed: int, stratify: bool) -> None:
         wrong_device = not torch.cuda.is_available()
 
     results = []
-    for dataset in datasets:
-        if wrong_device:
-            result = ClassificationResults.failure(
-                dataset[YamlKeys.OPENML_ID],
-                dataset[YamlKeys.OPENML_NAME],
-                Status.WRONG_DEVICE,
-                error_message=f"{model} requires CUDA but no CUDA device is available",
+    try:
+        for dataset in datasets:
+            if wrong_device:
+                result = ClassificationResults.failure(
+                    dataset[YamlKeys.OPENML_ID],
+                    dataset[YamlKeys.OPENML_NAME],
+                    Status.WRONG_DEVICE,
+                    error_message=(
+                        f"{model} requires CUDA but no CUDA device is available"
+                    ),
+                )
+            else:
+                result = _run_dataset(dataset, model_config, test_size, seed, stratify)
+            print(
+                f"[debug] {result.openml_name}: "
+                f"accuracy={result.metrics.accuracy:.4f} roc_auc={result.metrics.roc_auc}"
             )
-        else:
-            ds = load_dataset(dataset)
-            loaded_model = load_model(model_config)
-            # Seed torch's RNG here only if torch has been imported by the model.
-            torch = sys.modules.get("torch")
-            if torch is not None:
-                torch.manual_seed(seed)
-            result = evaluate(
-                loaded_model, ds, test_size=test_size, seed=seed, stratify=stratify
-            )
-        print(
-            f"[debug] {result.openml_name}: "
-            f"accuracy={result.metrics.accuracy:.4f} roc_auc={result.metrics.roc_auc}"
-        )
-        results.append(result)
-
-    dump_results(results, model_config, config_path)
+            results.append(result)
+    finally:
+        dump_results(results, model_config, config_path)
 
 
 if __name__ == "__main__":

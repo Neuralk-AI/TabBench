@@ -1,9 +1,11 @@
 import importlib
 import math
+import warnings
 from dataclasses import asdict
 
 import numpy as np
 import pandas as pd
+import pytest
 import yaml
 
 from tabbench.engine import (
@@ -88,6 +90,61 @@ def test_compute_metrics_macro_averages_for_multiclass_targets():
     assert 0.0 <= metrics.roc_auc <= 1.0
 
 
+def test_compute_metrics_macro_averages_only_the_classes_the_split_can_score():
+    """A class missing from the test split can't be scored, and used to turn every
+    macro metric into NaN. Average over the classes that were scoreable instead, so a
+    rare class missing the split doesn't erase the whole dataset's numbers.
+    """
+    # "c" is a known class but absent from y_test: perfect scores on "a" and "b".
+    y_test = np.array(["a", "b", "a", "b"])
+    y_pred = np.array(["a", "b", "a", "b"])
+    y_proba = np.array(
+        [[0.8, 0.1, 0.1], [0.1, 0.8, 0.1], [0.7, 0.2, 0.1], [0.2, 0.7, 0.1]]
+    )
+    classes = np.array(["a", "b", "c"])
+
+    metrics = _compute_metrics(y_test, y_pred, y_proba, classes)
+
+    assert metrics.accuracy == 1.0
+    assert metrics.tpr == 1.0  # mean over a and b, not NaN
+    assert metrics.fpr == 0.0
+    assert metrics.tnr == 1.0
+    assert metrics.fnr == 0.0
+    assert metrics.roc_auc == 1.0
+
+
+def test_compute_metrics_reports_nan_when_no_class_can_be_scored():
+    """NaN is still the honest answer when nothing is scoreable -- a single-class test
+    split -- and it must stay NaN rather than becoming a fabricated number.
+    """
+    y_test = np.array(["a", "a"])
+    y_pred = np.array(["a", "a"])
+    y_proba = np.array([[0.9, 0.1], [0.8, 0.2]])
+    classes = np.array(["a", "b"])
+
+    metrics = _compute_metrics(y_test, y_pred, y_proba, classes)
+
+    assert metrics.accuracy == 1.0
+    assert math.isnan(metrics.tpr)  # no true "b" instances to recover
+    assert math.isnan(metrics.roc_auc)
+
+
+def test_compute_metrics_does_not_warn_on_an_unscoreable_class():
+    """The old arithmetic reached NaN through a 0/0 RuntimeWarning. Unscoreable
+    classes are now expected and marked deliberately, so nothing should warn.
+    """
+    y_test = np.array(["a", "b", "a", "b"])
+    y_pred = np.array(["a", "b", "a", "b"])
+    y_proba = np.array(
+        [[0.8, 0.1, 0.1], [0.1, 0.8, 0.1], [0.7, 0.2, 0.1], [0.2, 0.7, 0.1]]
+    )
+    classes = np.array(["a", "b", "c"])
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        _compute_metrics(y_test, y_pred, y_proba, classes)
+
+
 def test_evaluate_returns_metrics_and_predictions():
     dataset = make_dataset(["a", "b"] * 10)
 
@@ -103,26 +160,18 @@ def test_evaluate_returns_metrics_and_predictions():
     assert len(result.predictions) == 4
 
 
-def test_evaluate_returns_failure_when_fit_raises():
+@pytest.mark.parametrize(
+    "model", [FitRaisesModel(), PredictRaisesModel()], ids=["fit", "predict"]
+)
+def test_evaluate_propagates_a_failing_model(model):
+    """evaluate() measures and does not decide what a failure means. Turning one into
+    a recorded row is the sweep's job, so a caller using evaluate() directly -- from a
+    notebook, say -- sees the real exception instead of a result full of NaN.
+    """
     dataset = make_dataset(["a", "b"] * 10)
 
-    result = evaluate(FitRaisesModel(), dataset, test_size=0.2, seed=0, stratify=True)
-
-    assert result.status == Status.FAILURE
-    assert result.error_message == "RuntimeError: boom"
-    assert math.isnan(result.metrics.accuracy)
-    assert result.predictions.empty
-
-
-def test_evaluate_returns_failure_when_predict_raises():
-    dataset = make_dataset(["a", "b"] * 10)
-
-    result = evaluate(PredictRaisesModel(), dataset, test_size=0.2, seed=0, stratify=True)
-
-    assert result.status == Status.FAILURE
-    assert result.error_message == "RuntimeError: boom"
-    assert math.isnan(result.metrics.accuracy)
-    assert result.predictions.empty
+    with pytest.raises(RuntimeError, match="boom"):
+        evaluate(model, dataset, test_size=0.2, seed=0, stratify=True)
 
 
 def test_evaluate_computes_macro_roc_auc_for_multiclass_targets():

@@ -143,25 +143,15 @@ def evaluate(
         stratify=dataset.y if stratify else None,
     )
 
-    try:
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
-        y_proba = model.predict_proba(X_test)
-        classes = model.classes_
-        metrics = _compute_metrics(y_test, y_pred, y_proba, classes)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    y_proba = model.predict_proba(X_test)
+    classes = model.classes_
+    metrics = _compute_metrics(y_test, y_pred, y_proba, classes)
 
-        predictions = pd.DataFrame(
-            y_proba, columns=[f"proba_{label}" for label in classes]
-        )
-        predictions.insert(0, "y_pred", y_pred)
-        predictions.insert(0, "y_true", y_test.to_numpy())
-    except Exception as exc:
-        return ClassificationResults.failure(
-            dataset.openml_id,
-            dataset.openml_name,
-            Status.FAILURE,
-            error_message=f"{type(exc).__name__}: {exc}",
-        )
+    predictions = pd.DataFrame(y_proba, columns=[f"proba_{label}" for label in classes])
+    predictions.insert(0, "y_pred", y_pred)
+    predictions.insert(0, "y_true", y_test.to_numpy())
 
     return ClassificationResults(
         openml_id=dataset.openml_id,
@@ -229,30 +219,50 @@ def dump_results(
     return run_dir
 
 
+def _ovr_roc_auc(
+    y_test: np.ndarray, y_proba: np.ndarray, classes: np.ndarray
+) -> np.ndarray:
+    """One-vs-rest ROC AUC per class, NaN for a class the test split cannot score.
+
+    Equivalent to roc_auc_score(multi_class="ovr") per class, scored one class at a
+    time because sklearn's own macro average propagates a single unscoreable class's
+    NaN to the whole figure, and it has no zero_division option to say otherwise.
+    """
+    scores = np.full(len(classes), np.nan)
+    for index, label in enumerate(classes):
+        actual = y_test == label
+        if 0 < actual.sum() < len(actual):
+            scores[index] = roc_auc_score(actual, y_proba[:, index])
+    return scores
+
+
 def _compute_metrics(
     y_test: np.ndarray, y_pred: np.ndarray, y_proba: np.ndarray, classes: np.ndarray
 ) -> ClassificationMetrics:
-    """Score a binary target directly, or macro-average one-vs-rest for multiclass."""
+    """Score a binary target directly, or macro-average one-vs-rest for multiclass.
+
+    A class the test split cannot score -- absent from y_test, or the only class in
+    it -- is left out of the macro average rather than dragging the whole metric to
+    NaN. Reachable whenever a rare class misses the split, so a NaN metric means the
+    dataset was unscoreable, not that the model failed.
+    """
     confusion = multilabel_confusion_matrix(y_test, y_pred, labels=classes)
     tn, fp = confusion[:, 0, 0], confusion[:, 0, 1]
     fn, tp = confusion[:, 1, 0], confusion[:, 1, 1]
-    tpr_per_class = tp / (tp + fn)
-    fpr_per_class = fp / (fp + tn)
-    tnr_per_class = tn / (tn + fp)
-    fnr_per_class = fn / (fn + tp)
+    with np.errstate(invalid="ignore"):  # 0/0 -> NaN, for a class with no support
+        tpr_per_class = tp / (tp + fn)
+        fpr_per_class = fp / (fp + tn)
+        tnr_per_class = tn / (tn + fp)
+        fnr_per_class = fn / (fn + tp)
 
     if len(classes) == 2:
-        roc_auc = float(roc_auc_score(y_test, y_proba[:, 1]))
+        roc_auc = float(_ovr_roc_auc(y_test, y_proba, classes)[1])
         tpr, fpr = float(tpr_per_class[1]), float(fpr_per_class[1])
         tnr, fnr = float(tnr_per_class[1]), float(fnr_per_class[1])
     else:
-        roc_auc = float(
-            roc_auc_score(
-                y_test, y_proba, multi_class="ovr", average="macro", labels=classes
-            )
-        )
-        tpr, fpr = float(tpr_per_class.mean()), float(fpr_per_class.mean())
-        tnr, fnr = float(tnr_per_class.mean()), float(fnr_per_class.mean())
+        roc_auc = float(np.nanmean(_ovr_roc_auc(y_test, y_proba, classes)))
+        tpr, fpr = float(np.nanmean(tpr_per_class)), float(np.nanmean(fpr_per_class))
+        tnr, fnr = float(np.nanmean(tnr_per_class)), float(np.nanmean(fnr_per_class))
 
     return ClassificationMetrics(
         accuracy=float(accuracy_score(y_test, y_pred)),
