@@ -1,7 +1,10 @@
 import subprocess
 import sys
 
+import numpy as np
+import pandas as pd
 import pytest
+from sklearn.linear_model import LogisticRegression
 
 from tabbench.engine import (
     ModelConfig,
@@ -9,23 +12,20 @@ from tabbench.engine import (
     load_model,
     resolve_config_path,
 )
-from tabbench.engine.models.logistic_regression import LogisticRegression
 
 
 def test_model_config_load_parses_yaml_fields(tmp_path):
     path = tmp_path / "logistic_regression.yaml"
     path.write_text(
         "model: logistic_regression\n"
-        "target: tabbench.engine.models.logistic_regression.model.LogisticRegression\n"
+        "target: sklearn.linear_model.LogisticRegression\n"
         "params:\n  C: 0.5\n"
     )
 
     config = ModelConfig.load(path)
 
     assert config.name == "logistic_regression"
-    assert config.target == (
-        "tabbench.engine.models.logistic_regression.model.LogisticRegression"
-    )
+    assert config.target == "sklearn.linear_model.LogisticRegression"
     assert config.params == {"C": 0.5}
 
 
@@ -41,14 +41,14 @@ def test_model_config_load_defaults_params(tmp_path):
 def test_load_model_resolves_target_and_forwards_params():
     config = ModelConfig(
         name="logistic_regression",
-        target="tabbench.engine.models.logistic_regression.model.LogisticRegression",
+        target="sklearn.linear_model.LogisticRegression",
         params={"C": 0.5},
     )
 
     model = load_model(config)
 
     assert isinstance(model, LogisticRegression)
-    assert model.estimator.C == 0.5
+    assert model.C == 0.5
 
 
 def test_load_model_raises_on_unresolvable_target():
@@ -94,6 +94,42 @@ def test_available_baselines_all_resolve_to_a_packaged_yaml():
     assert names  # sanity: discovery actually found something
     for name in names:
         assert resolve_config_path(name).is_file()
+
+
+@pytest.mark.parametrize("name", available_baselines())
+def test_packaged_baseline_name_matches_its_directory(name):
+    """A baseline is discovered by directory name but reported by its "model" key,
+    and dump_results names the run directory from the latter. Pin them together so
+    the two can't drift.
+    """
+    assert ModelConfig.load(resolve_config_path(name)).name == name
+
+
+@pytest.mark.parametrize("name", available_baselines())
+def test_packaged_baseline_satisfies_the_classification_contract(name):
+    """Every packaged target must honour ClassificationModel on a string-labelled
+    multiclass target, whether it is one of ours or an upstream class pointed at
+    directly. This is what lets most baselines carry no TabBench code at all.
+    """
+    model = load_model(ModelConfig.load(resolve_config_path(name)))
+
+    n_rows, labels = 15, ["low", "medium", "high"]
+    X = pd.DataFrame({"a": np.arange(n_rows) % 3, "b": np.arange(n_rows) % 5})
+    y = pd.Series(labels * (n_rows // len(labels)))
+    model.fit(X, y)
+
+    # classes_ : original labels, ascending
+    assert list(model.classes_) == sorted(labels)
+
+    # predict : shape (n,), values drawn from the original labels
+    predictions = model.predict(X)
+    assert predictions.shape == (n_rows,)
+    assert set(predictions) <= set(labels)
+
+    # predict_proba : shape (n, n_classes), rows summing to 1, columns in classes_ order
+    probabilities = model.predict_proba(X)
+    assert probabilities.shape == (n_rows, len(labels))
+    assert np.allclose(probabilities.sum(axis=1), 1.0)
 
 
 @pytest.mark.parametrize("name", available_baselines())
