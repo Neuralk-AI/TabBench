@@ -1,5 +1,11 @@
 from .dataset import Dataset, load_dataset
-from .evaluate import ClassificationMetrics, ClassificationResults, dump_results, evaluate
+from .evaluate import (
+    ClassificationMetrics,
+    ClassificationResults,
+    Status,
+    dump_results,
+    evaluate,
+)
 from .model import ClassificationModel, ModelConfig
 from .models import available_baselines, load_model, resolve_config_path
 
@@ -9,6 +15,7 @@ __all__ = [
     "ClassificationResults",
     "Dataset",
     "ModelConfig",
+    "Status",
     "available_baselines",
     "dump_results",
     "evaluate",

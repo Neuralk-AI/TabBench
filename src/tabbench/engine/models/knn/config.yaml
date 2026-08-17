@@ -1,2 +1,5 @@
 model: knn
 target: sklearn.neighbors.KNeighborsClassifier
+requires_cuda: false
+params:
+  n_neighbors: 5

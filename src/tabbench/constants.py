@@ -5,6 +5,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DATASETS_FILE = Path(__file__).resolve().parent / "openml.yaml"
 OUT_DIR = REPO_ROOT / "out"
 
+TEST_SIZE = 0.2
+SEED = 0
+STRATIFY = True
+
 
 class YamlKeys(str, Enum):
     """Keys expected in a dataset entry of openml.yaml."""

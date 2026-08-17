@@ -1,2 +1,4 @@
 model: dummy
 target: sklearn.dummy.DummyClassifier
+requires_cuda: false
+params: {}

@@ -1,2 +1,5 @@
 model: xgboost
 target: tabbench.engine.models.xgboost.model.XGBoost
+requires_cuda: false
+params:
+  n_estimators: 100

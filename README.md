@@ -16,8 +16,19 @@ A tabular machine learning benchmark for industrial tasks.
 
 ## Install
 
+Clone the repo and use [uv](https://docs.astral.sh/uv/):
+
 ```bash
-pip install tabbench
+git clone https://github.com/Neuralk-AI/TabBench
+cd TabBench
+uv sync
+```
+
+## Usage
+
+```bash
+tabbench --model xgboost
+tabbench --help
 ```
 
 ## Benchmarking your own model

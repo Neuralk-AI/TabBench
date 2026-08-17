@@ -5,9 +5,11 @@ import sys
 import numpy as np
 import yaml
 
-from tabbench.constants import DATASETS_FILE
+from tabbench.constants import DATASETS_FILE, SEED, STRATIFY, TEST_SIZE
 from tabbench.engine import (
+    ClassificationResults,
     ModelConfig,
+    Status,
     available_baselines,
     dump_results,
     evaluate,
@@ -30,8 +32,7 @@ def _model(model_arg: str) -> str:
     return model_arg
 
 
-def main():
-    parser = argparse.ArgumentParser()
+def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--model",
         required=True,
@@ -41,43 +42,43 @@ def main():
             "or a path to a custom model's yaml config."
         ),
     )
-    parser.add_argument(
-        "--test-size",
-        type=float,
-        default=0.2,
-        help="Fraction of each dataset held out for testing.",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=0,
-        help="Random seed.",
-    )
-    parser.add_argument(
-        "--stratify",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Stratify the train/test split on the target.",
-    )
-    args = parser.parse_args()
-    random.seed(args.seed)
-    np.random.seed(args.seed)
 
-    config_path = resolve_config_path(args.model)
+
+def main(model: str) -> None:
+    random.seed(SEED)
+    np.random.seed(SEED)
+
+    config_path = resolve_config_path(model)
     model_config = ModelConfig.load(config_path)
     datasets = yaml.safe_load(DATASETS_FILE.read_text())
+
+    # Only check CUDA availability (which needs torch) for models that declare
+    # they need it, to avoid clashes with OpenMP used in XGBoost/LightGBM.
+    wrong_device = False
+    if model_config.requires_cuda:
+        import torch
+
+        wrong_device = not torch.cuda.is_available()
 
     results = []
     for dataset in datasets:
         ds = load_dataset(dataset)
-        model = load_model(model_config)
-        # Seed torch's RNG here only if torch has been imported by the model.
-        torch = sys.modules.get("torch")
-        if torch is not None:
-            torch.manual_seed(args.seed)
-        result = evaluate(
-            model, ds, test_size=args.test_size, seed=args.seed, stratify=args.stratify
-        )
+        if wrong_device:
+            result = ClassificationResults.failure(
+                ds.openml_id,
+                ds.openml_name,
+                Status.WRONG_DEVICE,
+                error_message=f"{model} requires CUDA but no CUDA device is available",
+            )
+        else:
+            loaded_model = load_model(model_config)
+            # Seed torch's RNG here only if torch has been imported by the model.
+            torch = sys.modules.get("torch")
+            if torch is not None:
+                torch.manual_seed(SEED)
+            result = evaluate(
+                loaded_model, ds, test_size=TEST_SIZE, seed=SEED, stratify=STRATIFY
+            )
         print(
             f"[debug] {result.openml_name}: "
             f"accuracy={result.metrics.accuracy:.4f} roc_auc={result.metrics.roc_auc}"
@@ -88,4 +89,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    add_arguments(parser)
+    main(**vars(parser.parse_args()))

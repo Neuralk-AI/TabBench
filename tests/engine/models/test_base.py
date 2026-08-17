@@ -20,6 +20,7 @@ def test_model_config_load_parses_yaml_fields(tmp_path):
     path.write_text(
         "model: logistic_regression\n"
         "target: sklearn.linear_model.LogisticRegression\n"
+        "requires_cuda: false\n"
         "params:\n  C: 0.5\n"
     )
 
@@ -27,6 +28,7 @@ def test_model_config_load_parses_yaml_fields(tmp_path):
 
     assert config.name == "logistic_regression"
     assert config.target == "sklearn.linear_model.LogisticRegression"
+    assert config.requires_cuda is False
     assert config.params == {"C": 0.5}
 
 
@@ -57,12 +59,13 @@ def test_model_config_load_raises_runtime_error_naming_the_file(
     assert expected in message
 
 
-def test_model_config_load_defaults_params(tmp_path):
+def test_model_config_load_defaults_requires_cuda_and_params(tmp_path):
     path = tmp_path / "minimal.yaml"
     path.write_text("model: minimal\ntarget: some.module.Class\n")
 
     config = ModelConfig.load(path)
 
+    assert config.requires_cuda is False
     assert config.params == {}
 
 
@@ -70,6 +73,7 @@ def test_load_model_resolves_target_and_forwards_params():
     config = ModelConfig(
         name="logistic_regression",
         target="sklearn.linear_model.LogisticRegression",
+        requires_cuda=False,
         params={"C": 0.5},
     )
 
@@ -109,7 +113,7 @@ def test_load_model_raises_when_target_is_not_a_classification_model(
     estimator at all, a regressor reached by picking the wrong class from the right
     module, and a classifier that cannot score probabilities as configured.
     """
-    config = ModelConfig(name="wrong", target=target, params=params)
+    config = ModelConfig(name="wrong", target=target, requires_cuda=False, params=params)
 
     with pytest.raises(RuntimeError) as excinfo:
         load_model(config)
@@ -126,7 +130,10 @@ def test_load_model_accepts_svc_once_it_can_produce_probabilities():
     a params mistake to fix rather than an unsupported model.
     """
     config = ModelConfig(
-        name="svc", target="sklearn.svm.SVC", params={"probability": True}
+        name="svc",
+        target="sklearn.svm.SVC",
+        requires_cuda=False,
+        params={"probability": True},
     )
 
     assert callable(load_model(config).predict_proba)
@@ -139,6 +146,7 @@ def test_load_model_accepts_a_target_whose_classes_is_not_set_until_fit():
     config = ModelConfig(
         name="logistic_regression",
         target="sklearn.linear_model.LogisticRegression",
+        requires_cuda=False,
         params={},
     )
 
@@ -151,6 +159,7 @@ def test_load_model_raises_on_unresolvable_target():
     config = ModelConfig(
         name="broken",
         target="tabbench.engine.models.does_not_exist.model.Nope",
+        requires_cuda=False,
         params={},
     )
 
