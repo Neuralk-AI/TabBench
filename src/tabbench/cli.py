@@ -18,18 +18,13 @@ import sys
 from tabbench import run
 
 
-def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="tabbench", add_help=False)
-    run.add_arguments(parser)
-    return parser
-
-
 def main() -> None:
     if "-h" in sys.argv[1:] or "--help" in sys.argv[1:]:
         print(__doc__)
         sys.exit(0)
 
-    parser = _build_parser()
+    parser = argparse.ArgumentParser(prog="tabbench", add_help=False)
+    run.add_arguments(parser)
     args = parser.parse_args()
     run.main(model=args.model)
 

@@ -44,12 +44,6 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    add_arguments(parser)
-    return parser.parse_args()
-
-
 def main(model: str) -> None:
     random.seed(SEED)
     np.random.seed(SEED)
@@ -95,4 +89,6 @@ def main(model: str) -> None:
 
 
 if __name__ == "__main__":
-    main(**vars(_parse_args()))
+    parser = argparse.ArgumentParser()
+    add_arguments(parser)
+    main(**vars(parser.parse_args()))
