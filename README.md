@@ -27,8 +27,8 @@ uv sync
 ## Usage
 
 ```bash
-tabbench run --model xgboost
-tabbench help
+tabbench --model xgboost
+tabbench --help
 ```
 
 ## Benchmarking your own model
