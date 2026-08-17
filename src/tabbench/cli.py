@@ -1,33 +1,37 @@
+"""tabbench: run a model against the TabBench benchmark.
+
+Usage: tabbench --model <baseline-name-or-config-path>
+
+  --model MODEL   Name of a packaged baseline or a path to a custom model's
+                  yaml config. Required.
+
+Fits and evaluates the model on every dataset in openml.yaml, then writes
+metrics and predictions to out/. A custom model's yaml config needs a
+`target` (dotted path to a sklearn-compatible estimator class), `requires_cuda`
+(bool), and `params` (kwargs passed to its constructor) — see
+src/tabbench/engine/models/*/config.yaml for examples.
+"""
+
 import argparse
+import sys
 
 from tabbench import run
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="tabbench")
-    subparsers = parser.add_subparsers(dest="command")
-
-    run_parser = subparsers.add_parser("run", help="Run a model against the benchmark.")
-    run.add_arguments(run_parser)
-
-    subparsers.add_parser("help", help="Show the run command's help.")
-
+    parser = argparse.ArgumentParser(prog="tabbench", add_help=False)
+    run.add_arguments(parser)
     return parser
 
 
 def main() -> None:
+    if "-h" in sys.argv[1:] or "--help" in sys.argv[1:]:
+        print(__doc__)
+        sys.exit(0)
+
     parser = _build_parser()
     args = parser.parse_args()
-
-    if args.command == "run":
-        run.main(
-            model=args.model,
-            test_size=args.test_size,
-            seed=args.seed,
-            stratify=args.stratify,
-        )
-    else:
-        parser.parse_args(["run", "--help"])
+    run.main(model=args.model)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ import sys
 import numpy as np
 import yaml
 
-from tabbench.constants import DATASETS_FILE
+from tabbench.constants import DATASETS_FILE, SEED, STRATIFY, TEST_SIZE
 from tabbench.engine import (
     ClassificationResults,
     ModelConfig,
@@ -42,24 +42,6 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
             "or a path to a custom model's yaml config."
         ),
     )
-    parser.add_argument(
-        "--test-size",
-        type=float,
-        default=0.2,
-        help="Fraction of each dataset held out for testing.",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=0,
-        help="Random seed.",
-    )
-    parser.add_argument(
-        "--stratify",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Stratify the train/test split on the target.",
-    )
 
 
 def _parse_args() -> argparse.Namespace:
@@ -68,9 +50,9 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main(model: str, test_size: float, seed: int, stratify: bool) -> None:
-    random.seed(seed)
-    np.random.seed(seed)
+def main(model: str) -> None:
+    random.seed(SEED)
+    np.random.seed(SEED)
 
     config_path = resolve_config_path(model)
     model_config = ModelConfig.load(config_path)
@@ -99,9 +81,9 @@ def main(model: str, test_size: float, seed: int, stratify: bool) -> None:
             # Seed torch's RNG here only if torch has been imported by the model.
             torch = sys.modules.get("torch")
             if torch is not None:
-                torch.manual_seed(seed)
+                torch.manual_seed(SEED)
             result = evaluate(
-                loaded_model, ds, test_size=test_size, seed=seed, stratify=stratify
+                loaded_model, ds, test_size=TEST_SIZE, seed=SEED, stratify=STRATIFY
             )
         print(
             f"[debug] {result.openml_name}: "

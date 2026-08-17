@@ -34,8 +34,8 @@ class FakeModel:
 
 def fake_load_dataset(yaml_dict):
     return Dataset(
-        X=pd.DataFrame({"a": [0, 1, 0, 1], "b": [1, 0, 1, 0]}),
-        y=pd.Series(["x", "y", "x", "y"]),
+        X=pd.DataFrame({"a": range(10), "b": range(10, 0, -1)}),
+        y=pd.Series(["x", "y"] * 5),
         openml_id=yaml_dict["openml_id"],
         openml_name=yaml_dict["openml_name"],
         description=yaml_dict["description"],
@@ -83,7 +83,7 @@ def test_main_reports_wrong_device_without_evaluating(tmp_path, monkeypatch):
         tmp_path, monkeypatch, FakeModel(), cuda_available=False, requires_cuda=True
     )
 
-    main(model="dummy", test_size=0.2, seed=0, stratify=True)
+    main(model="dummy")
 
     run_dir = next(tmp_path.glob("*_dummy"))
     summary = yaml.safe_load((run_dir / "summary.yaml").read_text())
@@ -98,7 +98,7 @@ def test_main_reports_ok_status_on_success(tmp_path, monkeypatch):
         tmp_path, monkeypatch, FakeModel(), cuda_available=False, requires_cuda=False
     )
 
-    main(model="dummy", test_size=0.5, seed=0, stratify=False)
+    main(model="dummy")
 
     run_dir = next(tmp_path.glob("*_dummy"))
     summary = yaml.safe_load((run_dir / "summary.yaml").read_text())
